@@ -7,7 +7,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from app.bot.handlers import common_router
+from app.bot.handlers import common_router, tasks_router
 from app.config import settings
 from app.db.base import async_engine, init_db
 
@@ -63,6 +63,7 @@ async def main() -> None:
 
     # Реєстрація роутерів
     dp.include_router(common_router)
+    dp.include_router(tasks_router)
 
     try:
         # Пропуск накопичених оновлень та старт polling
