@@ -5,6 +5,7 @@ from app.services.ai_checker import (
     MockAIChecker,
     get_ai_checker,
 )
+from app.services.task_service import TaskService
 
 __all__ = [
     "AICheckResult",
@@ -12,4 +13,5 @@ __all__ = [
     "GeneratedTask",
     "MockAIChecker",
     "get_ai_checker",
+    "TaskService",
 ]

@@ -50,11 +50,15 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Ініціалізація бази даних: створення всіх зареєстрованих таблиць."""
+    """Ініціалізація бази даних: створення таблиць та наповнення початковими даними."""
     # Імпорт моделей для реєстрації метаданих у Base
     import app.db.models  # noqa: F401
+    from app.db.seed import seed_initial_data
 
     logger.info("Ініціалізація таблиць бази даних...")
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Таблиці бази даних успішно перевірені/створені.")
+
+    # Заповнюємо початковими темами та задачами
+    await seed_initial_data()
