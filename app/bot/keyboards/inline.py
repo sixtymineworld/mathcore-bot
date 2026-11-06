@@ -36,7 +36,7 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
 
     # Кнопка для зміни класу
     builder.button(
-        text="🔄 Змінити клас",
+        text="змінити клас",
         callback_data="change_grade",
     )
 
@@ -50,15 +50,15 @@ def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboard
     builder = InlineKeyboardBuilder()
 
     builder.button(
-        text="✍️ Відповісти",
+        text="дати відповідь",
         callback_data=f"solve:{task_id}",
     )
     builder.button(
-        text="💡 Підказка",
+        text="підказка",
         callback_data=f"hint:{task_id}",
     )
     builder.button(
-        text="🔙 До списку тем",
+        text="до списку інших тем",
         callback_data=f"topics_list:{grade}",
     )
 
@@ -79,22 +79,22 @@ def get_task_navigation_keyboard(
 
     if not is_correct:
         builder.button(
-            text="🔄 Спробувати ще раз",
+            text="спробувати ще раз",
             callback_data=f"solve:{current_task_id}",
         )
         builder.button(
-            text="💡 Взяти підказку",
+            text="отримати підказку",
             callback_data=f"hint:{current_task_id}",
         )
 
     if next_task_id is not None:
         builder.button(
-            text="➡️ Наступне завдання",
+            text="наступне завдання",
             callback_data=f"task:{next_task_id}",
         )
 
     builder.button(
-        text="🔙 До списку тем",
+        text="до списку інших тем",
         callback_data=f"topics_list:{grade}",
     )
 

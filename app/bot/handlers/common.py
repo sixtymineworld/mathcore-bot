@@ -34,12 +34,12 @@ async def handle_start(message: Message, state: FSMContext) -> None:
 
     safe_name = html.escape(tg_user.first_name)
     welcome_text = (
-        f"👋 Привіт, <b>{safe_name}</b>!\n\n"
-        "Ласкаво просимо до <b>mathcore</b> — твого інтерактивного "
-        "AI-помічника зі шкільної математики! 📐\n\n"
-        "Тут ти можеш тренуватись розв'язувати задачі, отримувати покрокові "
+        f"привіт, <b>{safe_name}</b>!\n\n"
+        "вітаємо тебе в <b>mathcore</b> — твого інтерактивного "
+        "аі-помічника зі шкільної математики!\n\n"
+        "тут ти можеш тренуватись розв'язувати задачі, отримувати покрокові "
         "підказки від штучного інтелекту та легко опановувати складні теми.\n\n"
-        "👇 <b>Обери свій клас</b>, щоб налаштувати навчальну програму:"
+        "<b>вибери свій клас</b>, щоб налаштувати навчальну програму:"
     )
 
     await state.set_state(UserState.selecting_grade)
@@ -75,23 +75,23 @@ async def handle_grade_selection(callback: CallbackQuery, state: FSMContext) -> 
     )
     logger.info("Користувач tg_id=%s обрав %s клас", tg_user.id, grade)
 
-    await callback.answer(f"Обрано {grade} клас! ✅")
+    await callback.answer(f"обрано {grade} клас")
 
     # Завантаження тем для обраного класу
     topics = await TaskService.get_topics_by_grade(grade)
 
     if topics:
         text = (
-            f"🎓 <b>Твій вибір: {grade} клас!</b>\n\n"
-            "Ось доступні навчальні теми за шкільною програмою.\n"
-            "Обери тему, щоб розпочати тренування:"
+            f"<b>твій вибір: {grade} клас!</b>\n\n"
+            "ось доступні навчальні теми за шкільною програмою.\n"
+            "вибери тему, щоб розпочати тренування:"
         )
         reply_markup = get_topics_keyboard(topics, grade)
     else:
         text = (
-            f"🎓 <b>Твій вибір: {grade} клас!</b>\n\n"
-            "Для цього класу навчальні матеріали якраз наповнюються.\n"
-            "Ти можеш обрати інший клас за допомогою кнопки нижче:"
+            f"<b>твій вибір: {grade} клас!</b>\n\n"
+            "для цього класу навчальні матеріали якраз наповнюються.\n"
+            "ти можеш обрати інший клас за допомогою кнопки нижче:"
         )
         reply_markup = get_grades_keyboard()
 
@@ -110,7 +110,7 @@ async def handle_change_grade(callback: CallbackQuery, state: FSMContext) -> Non
     await callback.answer()
     await state.set_state(UserState.selecting_grade)
 
-    text = "👇 <b>Обери свій клас</b> для налаштування програми:"
+    text = "<b>вибери свій клас</b> для налаштування програми:"
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
             text=text,
@@ -128,7 +128,7 @@ async def handle_topics_command(message: Message, state: FSMContext) -> None:
     user = await TaskService.get_user_by_tg_id(tg_user.id)
     if not user or not user.grade:
         await message.answer(
-            "Будь ласка, спочатку оберіть свій клас за допомогою команди /start."
+            "будь ласка, спочатку оберіть свій клас за допомогою команди /start."
         )
         return
 
@@ -136,6 +136,6 @@ async def handle_topics_command(message: Message, state: FSMContext) -> None:
     await state.set_state(UserState.viewing_topics)
 
     await message.answer(
-        text=f"📚 <b>Навчальні теми для {user.grade} класу:</b>\nОберіть тему для тренування:",
+        text=f"<b>навчальні теми для {user.grade} класу:</b>\nвиберіть тему для тренування:",
         reply_markup=get_topics_keyboard(topics, user.grade),
     )

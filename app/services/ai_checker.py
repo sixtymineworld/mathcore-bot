@@ -25,11 +25,7 @@ class GeneratedTask:
 
 
 class BaseAIChecker(ABC):
-    """Абстрактний інтерфейс для AI-сервісу перевірки математичних розв'язків.
-
-    Дозволяє без змін у бізнес-логіці підключати різних провайдерів LLM
-    (OpenAI GPT-4o, Google Gemini, Anthropic Claude, локальні моделі через vLLM/Ollama).
-    """
+    """Абстрактний інтерфейс для AI-сервісу перевірки математичних розв'язків."""
 
     @abstractmethod
     async def check_solution(
@@ -39,7 +35,6 @@ class BaseAIChecker(ABC):
         correct_answer: str,
         grade: int,
     ) -> AICheckResult:
-        """Перевіряє правильність відповіді учня та повертає педагогічний фідбек."""
         pass
 
     @abstractmethod
@@ -49,7 +44,6 @@ class BaseAIChecker(ABC):
         grade: int,
         custom_hint: str | None = None,
     ) -> str:
-        """Генерує підказку або наводить на наступний крок без розкриття повної відповіді."""
         pass
 
     @abstractmethod
@@ -58,16 +52,11 @@ class BaseAIChecker(ABC):
         grade: int,
         topic: str,
     ) -> GeneratedTask:
-        """Генерує нове унікальне математичне завдання за класом і темою."""
         pass
 
 
 class MockAIChecker(BaseAIChecker):
-    """Заглушка (Mock) AI-сервісу для локальної розробки та тестування.
-
-    Імітує роботу LLM, дозволяючи тестувати логіку бота без використання
-    платних API-ключів або підключення до зовнішніх сервісів.
-    """
+    """Заглушка (Mock) AI-сервісу для локальної розробки та тестування."""
 
     @staticmethod
     def _normalize(answer: str) -> str:
@@ -93,19 +82,19 @@ class MockAIChecker(BaseAIChecker):
 
         if is_correct:
             feedback = (
-                f"🎉 <b>Чудова робота!</b> Відповідь <code>{user_answer.strip()}</code> абсолютно правильна.\n"
-                f"Ти чудово володієш темою для {grade} класу."
+                f"чудова робота! відповідь <code>{user_answer.strip()}</code> абсолютно правильна.\n"
+                f"ти чудово володієш темою для {grade} класу."
             )
         else:
             feedback = (
-                f"🤔 Схоже, у розрахунках є помилка. Твоя відповідь: <code>{user_answer.strip()}</code>.\n"
-                "Спробуй ще раз перевірити проміжні кроки або скористайся підказкою!"
+                f"схоже, у розрахунках є помилка. твоя відповідь: <code>{user_answer.strip()}</code>.\n"
+                "перевір проміжні кроки або скористайся підказкою!"
             )
 
         return AICheckResult(
             is_correct=is_correct,
             feedback=feedback,
-            detailed_solution=f"Еталонна відповідь: <b>{correct_answer}</b>.",
+            detailed_solution=f"еталонна відповідь: <b>{correct_answer}</b>.",
             confidence_score=1.0,
         )
 
@@ -117,13 +106,13 @@ class MockAIChecker(BaseAIChecker):
     ) -> str:
         if custom_hint:
             return (
-                f"💡 <b>Підказка від AI ({grade} клас):</b>\n\n"
+                f"<b>підказка ({grade} клас):</b>\n\n"
                 f"{custom_hint}"
             )
 
         return (
-            f"💡 <b>Підказка для {grade} класу:</b>\n"
-            "Уважно перечитай умову задачі, виділи відомі величини та запиши формулу, "
+            f"<b>підказка ({grade} клас):</b>\n\n"
+            "уважно перечитай умову задачі, виділи відомі величини та запиши формулу, "
             "яка пов'язує їх із шуканим значенням."
         )
 
@@ -135,8 +124,8 @@ class MockAIChecker(BaseAIChecker):
         return GeneratedTask(
             grade=grade,
             topic=topic,
-            question="Розв'яжіть рівняння: 2x + 6 = 14",
-            hint="Перенеси відомі доданки в праву частину, змінивши знак на протилежний.",
+            question="розв'яжіть рівняння: 2x + 6 = 14",
+            hint="перенеси відомі доданки в праву частину, змінивши знак на протилежний.",
             correct_answer="4",
         )
 

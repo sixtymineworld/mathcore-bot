@@ -19,8 +19,8 @@ router = Router(name="tasks")
 
 
 def format_difficulty(level: int) -> str:
-    """Форматує рівень складності у вигляді зірочок."""
-    return "⭐" * max(1, min(level, 3))
+    """Форматує рівень складності."""
+    return f"{max(1, min(level, 3))}/3"
 
 
 @router.callback_query(F.data.startswith("topics_list:"))
@@ -32,14 +32,14 @@ async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> N
     try:
         grade = int(callback.data.split(":")[1])
     except (IndexError, ValueError):
-        await callback.answer("Помилка навігації.", show_alert=True)
+        await callback.answer("помилка навігації.", show_alert=True)
         return
 
     topics = await TaskService.get_topics_by_grade(grade)
     await state.set_state(UserState.viewing_topics)
     await callback.answer()
 
-    text = f"📚 <b>Навчальні теми для {grade} класу:</b>\nОберіть тему для тренування:"
+    text = f"<b>навчальні теми для {grade} класу:</b>\nвибери тему для тренування:"
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
             text=text,
@@ -56,17 +56,17 @@ async def handle_topic_selection(callback: CallbackQuery, state: FSMContext) -> 
     try:
         topic_id = int(callback.data.split(":")[1])
     except (IndexError, ValueError):
-        await callback.answer("Помилка вибору теми.", show_alert=True)
+        await callback.answer("помилка вибору теми.", show_alert=True)
         return
 
     topic = await TaskService.get_topic_by_id(topic_id)
     if not topic:
-        await callback.answer("Тему не знайдено.", show_alert=True)
+        await callback.answer("тему не знайдено.", show_alert=True)
         return
 
     tasks = await TaskService.get_tasks_by_topic(topic_id)
     if not tasks:
-        await callback.answer("Завдання для цієї теми ще готуються!", show_alert=True)
+        await callback.answer("завдання для цієї теми ще готуються!", show_alert=True)
         return
 
     first_task = tasks[0]
@@ -74,10 +74,10 @@ async def handle_topic_selection(callback: CallbackQuery, state: FSMContext) -> 
 
     stars = format_difficulty(first_task.difficulty)
     text = (
-        f"📖 <b>Тема:</b> {topic.title}\n"
-        f"🎯 <b>Завдання:</b> {first_task.title} (Складність: {stars})\n\n"
+        f"<b>тема:</b> {topic.title}\n"
+        f"<b>завдання:</b> {first_task.title} (складність: {stars})\n\n"
         f"{first_task.question_text}\n\n"
-        "<i>Натисніть кнопку нижче, щоб дати відповідь або отримати підказку від AI:</i>"
+        "<i>вибирай дію нижче:</i>"
     )
 
     if isinstance(callback.message, Message):
@@ -100,26 +100,26 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
     try:
         task_id = int(callback.data.split(":")[1])
     except (IndexError, ValueError):
-        await callback.answer("Помилка відкриття завдання.", show_alert=True)
+        await callback.answer("помилка відкриття завдання.", show_alert=True)
         return
 
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        await callback.answer("Завдання не знайдено.", show_alert=True)
+        await callback.answer("завдання не знайдено.", show_alert=True)
         return
 
     topic = await TaskService.get_topic_by_id(task.topic_id)
     grade = topic.grade if topic else 5
-    topic_title = topic.title if topic else "Математика"
+    topic_title = topic.title if topic else "математика"
 
     await callback.answer()
 
     stars = format_difficulty(task.difficulty)
     text = (
-        f"📖 <b>Тема:</b> {topic_title}\n"
-        f"🎯 <b>Завдання:</b> {task.title} (Складність: {stars})\n\n"
+        f"<b>тема:</b> {topic_title}\n"
+        f"<b>завдання:</b> {task.title} (складність: {stars})\n\n"
         f"{task.question_text}\n\n"
-        "<i>Натисніть кнопку нижче, щоб дати відповідь або отримати підказку від AI:</i>"
+        "<i>вибирай дію нижче:</i>"
     )
 
     if isinstance(callback.message, Message):
@@ -142,12 +142,12 @@ async def handle_solve_task(callback: CallbackQuery, state: FSMContext) -> None:
     try:
         task_id = int(callback.data.split(":")[1])
     except (IndexError, ValueError):
-        await callback.answer("Помилка ініціалізації розв'язку.", show_alert=True)
+        await callback.answer("помилка ініціалізації розв'язку.", show_alert=True)
         return
 
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        await callback.answer("Завдання не знайдено.", show_alert=True)
+        await callback.answer("завдання не знайдено.", show_alert=True)
         return
 
     await state.update_data(current_task_id=task_id)
@@ -155,9 +155,9 @@ async def handle_solve_task(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
     prompt_text = (
-        f"✍️ <b>Розв'язуємо:</b> {task.title}\n\n"
+        f"<b>розв'язуємо:</b> {task.title}\n\n"
         f"{task.question_text}\n\n"
-        "👇 <b>Надішліть вашу відповідь у повідомленні нижче:</b>\n"
+        "надішли свою відповідь повідомленням нижче:\n"
         "<i>(наприклад: <code>4</code>, <code>5/7</code> або <code>30</code>)</i>"
     )
 
@@ -174,12 +174,12 @@ async def handle_hint_task(callback: CallbackQuery) -> None:
     try:
         task_id = int(callback.data.split(":")[1])
     except (IndexError, ValueError):
-        await callback.answer("Помилка отримання підказки.", show_alert=True)
+        await callback.answer("помилка отримання підказки.", show_alert=True)
         return
 
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        await callback.answer("Завдання не знайдено.", show_alert=True)
+        await callback.answer("завдання не знайдено.", show_alert=True)
         return
 
     topic = await TaskService.get_topic_by_id(task.topic_id)
@@ -192,7 +192,7 @@ async def handle_hint_task(callback: CallbackQuery) -> None:
         custom_hint=task.solution_hint,
     )
 
-    await callback.answer("Підказку згенеровано! 💡")
+    await callback.answer("підказку згенеровано")
     if isinstance(callback.message, Message):
         await callback.message.answer(text=hint_text)
 
@@ -208,14 +208,14 @@ async def handle_user_answer(message: Message, state: FSMContext) -> None:
 
     if not task_id:
         await message.answer(
-            "Не вдалося визначити поточне завдання. Оберіть тему заново через /topics."
+            "не вдалося визначити поточне завдання. вибери тему заново через /topics."
         )
         await state.clear()
         return
 
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        await message.answer("Завдання не знайдено в базі даних.")
+        await message.answer("завдання не знайдено в базі даних.")
         await state.clear()
         return
 
@@ -246,13 +246,13 @@ async def handle_user_answer(message: Message, state: FSMContext) -> None:
     if result.is_correct:
         response_text = (
             f"{result.feedback}\n\n"
-            f"💡 <i>{result.detailed_solution}</i>\n\n"
-            "Що робимо далі? Обирай дію нижче:"
+            f"<i>{result.detailed_solution}</i>\n\n"
+            "що робимо далі? вибирай дію нижче:"
         )
     else:
         response_text = (
             f"{result.feedback}\n\n"
-            "Не засмучуйся, математика любить наполегливих! Спробуй ще раз або візьми підказку:"
+            "спробуй ще раз або візьми підказку:"
         )
 
     await state.clear()
