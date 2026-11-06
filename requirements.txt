@@ -1,0 +1,7 @@
+aiogram>=3.13.0
+sqlalchemy>=2.0.35
+asyncmy>=0.2.10
+pydantic-settings>=2.5.2
+python-dotenv>=1.0.1
+cryptography>=43.0.1
+
