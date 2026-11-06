@@ -65,3 +65,38 @@ def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboard
     # Дві кнопки дій в один рядок, повернення в окремий рядок
     builder.adjust(2, 1)
     return builder.as_markup()
+
+
+def get_task_navigation_keyboard(
+    next_task_id: int | None,
+    current_task_id: int,
+    topic_id: int,
+    grade: int,
+    is_correct: bool,
+) -> InlineKeyboardMarkup:
+    """Клавіатура після перевірки розв'язку (спробувати знову або наступна задача)."""
+    builder = InlineKeyboardBuilder()
+
+    if not is_correct:
+        builder.button(
+            text="🔄 Спробувати ще раз",
+            callback_data=f"solve:{current_task_id}",
+        )
+        builder.button(
+            text="💡 Взяти підказку",
+            callback_data=f"hint:{current_task_id}",
+        )
+
+    if next_task_id is not None:
+        builder.button(
+            text="➡️ Наступне завдання",
+            callback_data=f"task:{next_task_id}",
+        )
+
+    builder.button(
+        text="🔙 До списку тем",
+        callback_data=f"topics_list:{grade}",
+    )
+
+    builder.adjust(1)
+    return builder.as_markup()

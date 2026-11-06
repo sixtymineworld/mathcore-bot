@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import re
 
 
 @dataclass
@@ -38,14 +39,7 @@ class BaseAIChecker(ABC):
         correct_answer: str,
         grade: int,
     ) -> AICheckResult:
-        """Перевіряє правильність відповіді учня та повертає педагогічний фідбек.
-
-        :param task_question: Текст умови задачі.
-        :param user_answer: Відповідь або хід розв'язку учня.
-        :param correct_answer: Еталонна відповідь.
-        :param grade: Клас навчання (1–11) для адаптації мови пояснення.
-        :return: Об'єкт AICheckResult з результатом та коментарем.
-        """
+        """Перевіряє правильність відповіді учня та повертає педагогічний фідбек."""
         pass
 
     @abstractmethod
@@ -53,13 +47,9 @@ class BaseAIChecker(ABC):
         self,
         task_question: str,
         grade: int,
+        custom_hint: str | None = None,
     ) -> str:
-        """Генерує підказку або наводить на наступний крок без розкриття повної відповіді.
-
-        :param task_question: Текст умови задачі.
-        :param grade: Клас навчання.
-        :return: Текст підказки.
-        """
+        """Генерує підказку або наводить на наступний крок без розкриття повної відповіді."""
         pass
 
     @abstractmethod
@@ -68,12 +58,7 @@ class BaseAIChecker(ABC):
         grade: int,
         topic: str,
     ) -> GeneratedTask:
-        """Генерує нове унікальне математичне завдання за класом і темою.
-
-        :param grade: Клас навчання (1–11).
-        :param topic: Назва теми (наприклад, "Квадратні рівняння").
-        :return: Згенероване завдання.
-        """
+        """Генерує нове унікальне математичне завдання за класом і темою."""
         pass
 
 
@@ -84,6 +69,16 @@ class MockAIChecker(BaseAIChecker):
     платних API-ключів або підключення до зовнішніх сервісів.
     """
 
+    @staticmethod
+    def _normalize(answer: str) -> str:
+        """Нормалізація математичної відповіді для точного порівняння."""
+        ans = answer.strip().replace(",", ".").lower()
+        # Прибираємо префікси "x =", "х =", "y =", "d =" тощо
+        ans = re.sub(r"^[a-zA-Zа-яА-ЯіІїЇєЄ]\s*=\s*", "", ans)
+        # Прибираємо зайві пробіли навколо знаків ділення (для дробів a / b)
+        ans = re.sub(r"\s*/\s*", "/", ans)
+        return ans.strip()
+
     async def check_solution(
         self,
         task_question: str,
@@ -91,26 +86,26 @@ class MockAIChecker(BaseAIChecker):
         correct_answer: str,
         grade: int,
     ) -> AICheckResult:
-        normalized_user = user_answer.strip().replace(",", ".").lower()
-        normalized_correct = correct_answer.strip().replace(",", ".").lower()
+        normalized_user = self._normalize(user_answer)
+        normalized_correct = self._normalize(correct_answer)
 
         is_correct = normalized_user == normalized_correct
 
         if is_correct:
             feedback = (
-                f"🎉 Чудова робота! Відповідь <b>{user_answer}</b> абсолютно правильна.\n"
-                f"Ти відмінно засвоїв матеріал для {grade} класу."
+                f"🎉 <b>Чудова робота!</b> Відповідь <code>{user_answer.strip()}</code> абсолютно правильна.\n"
+                f"Ти чудово володієш темою для {grade} класу."
             )
         else:
             feedback = (
-                f"🤔 Схоже, у розрахунках є неточність. Твоя відповідь: <b>{user_answer}</b>.\n"
-                f"Спробуй ще раз або скористайся підказкою, щоб знайти правильний шлях!"
+                f"🤔 Схоже, у розрахунках є помилка. Твоя відповідь: <code>{user_answer.strip()}</code>.\n"
+                "Спробуй ще раз перевірити проміжні кроки або скористайся підказкою!"
             )
 
         return AICheckResult(
             is_correct=is_correct,
             feedback=feedback,
-            detailed_solution=f"Еталонна відповідь: {correct_answer}.",
+            detailed_solution=f"Еталонна відповідь: <b>{correct_answer}</b>.",
             confidence_score=1.0,
         )
 
@@ -118,7 +113,14 @@ class MockAIChecker(BaseAIChecker):
         self,
         task_question: str,
         grade: int,
+        custom_hint: str | None = None,
     ) -> str:
+        if custom_hint:
+            return (
+                f"💡 <b>Підказка від AI ({grade} клас):</b>\n\n"
+                f"{custom_hint}"
+            )
+
         return (
             f"💡 <b>Підказка для {grade} класу:</b>\n"
             "Уважно перечитай умову задачі, виділи відомі величини та запиши формулу, "
@@ -140,9 +142,5 @@ class MockAIChecker(BaseAIChecker):
 
 
 def get_ai_checker() -> BaseAIChecker:
-    """Фабрика для отримання екземпляра AI-сервісу.
-
-    У майбутньому тут можна перемикати імплементацію на основі конфігурації
-    (наприклад, повертати OpenAIChecker, GeminiChecker тощо).
-    """
+    """Фабрика для отримання екземпляра AI-сервісу."""
     return MockAIChecker()
