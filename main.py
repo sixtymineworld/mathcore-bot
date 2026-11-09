@@ -79,12 +79,33 @@ async def main() -> None:
         # Пропуск накопичених оновлень та старт polling
         await bot.delete_webhook(drop_pending_updates=True)
         logger.info("Початок отримання оновлень (polling)...")
-        await dp.start_polling(
-            bot,
-            allowed_updates=dp.resolve_used_update_types(),
+
+        import uvicorn
+        from app.api.app import app as fastapi_app
+
+        config = uvicorn.Config(
+            app=fastapi_app,
+            host=settings.WEB_HOST,
+            port=settings.WEB_PORT,
+            log_level="info",
         )
+        server = uvicorn.Server(config)
+
+        logger.info("Запуск веб-сервера API на http://%s:%s", settings.WEB_HOST, settings.WEB_PORT)
+        logger.info("Swagger документація API доступна на http://localhost:%s/docs", settings.WEB_PORT)
+
+        bot_task = asyncio.create_task(
+            dp.start_polling(
+                bot,
+                allowed_updates=dp.resolve_used_update_types(),
+            )
+        )
+        server_task = asyncio.create_task(server.serve())
+
+        await asyncio.gather(bot_task, server_task)
     finally:
         # Закриття клієнтської сесії бота
+        server.should_exit = True
         await bot.session.close()
         logger.info("Сесію бота закрито.")
 

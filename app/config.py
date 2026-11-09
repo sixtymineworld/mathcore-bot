@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
     GEMINI_MODEL: str = Field(default="gemini-2.0-flash", description="Назва моделі Gemini")
 
+    # Налаштування Web API / Telegram Mini App
+    WEB_HOST: str = Field(default="0.0.0.0", description="Хост для запуску FastAPI")
+    WEB_PORT: int = Field(default=8000, description="Порт для запуску FastAPI")
+    WEB_APP_URL: str = Field(default="", description="Публічний URL веб-додатку (TMA)")
+    DEBUG: bool = Field(default=True, description="Режим налагодження (для тестування без Telegram)")
+
     @computed_field
     @property
     def DATABASE_URL(self) -> str:
