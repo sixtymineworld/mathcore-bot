@@ -31,6 +31,16 @@ async def on_startup(bot: Bot) -> None:
         bot_info.id,
     )
 
+    from aiogram.types import BotCommand
+
+    await bot.set_my_commands(
+        [
+            BotCommand(command="topics", description="список навчальних тем"),
+            BotCommand(command="profile", description="профіль та успішність"),
+            BotCommand(command="start", description="вибір класу та головне меню"),
+        ]
+    )
+
 
 async def on_shutdown(bot: Bot) -> None:
     """Хук зупинки: коректне закриття з'єднань з базою даних."""

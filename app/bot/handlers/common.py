@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, Message
 
 from app.bot.keyboards.inline import (
     get_grades_keyboard,
+    get_profile_keyboard,
     get_stats_keyboard,
     get_topics_keyboard,
 )
@@ -147,49 +148,66 @@ async def handle_topics_command(message: Message, state: FSMContext) -> None:
 
 @router.message(Command("stats", "profile"))
 async def handle_stats_command(message: Message) -> None:
-    """Команда /stats або /profile для перегляду навчального прогресу."""
+    """Команда /stats або /profile для перегляду успішності та активності."""
     tg_user = message.from_user
     if not tg_user:
         return
 
-    stats = await TaskService.get_user_stats(tg_user.id)
-    if not stats["grade"]:
+    profile = await TaskService.get_user_profile(tg_user.id)
+    if not profile["grade"]:
         await message.answer("спочатку вибери свій клас через команду /start.")
         return
 
+    safe_name = html.escape(profile["first_name"] or tg_user.first_name or "учень").lower()
     text = (
-        "<b>твій прогрес:</b>\n\n"
-        f"клас: {stats['grade']}\n"
-        f"розв'язано завдань: {stats['solved_unique']}\n"
-        f"всього спроб: {stats['total_attempts']}\n"
-        f"точність: {stats['accuracy']}%\n\n"
+        f"<b>профіль: {safe_name}</b>\n"
+        f"клас: {profile['grade']}\n"
+        f"рівень: {profile['rank']}\n\n"
+        "<b>успішність:</b>\n"
+        f"розв'язано завдань: {profile['solved_unique']}\n"
+        f"точність: {profile['accuracy']}% {profile['progress_bar']}\n"
+        f"всього спроб: {profile['total_attempts']}\n\n"
+        "<b>активність:</b>\n"
+        f"сьогодні розв'язано: {profile['today_solved']}\n"
+        f"серія правильних відповідей: {profile['streak']}\n"
+        f"з нами: {profile['days_registered']} дн.\n\n"
         "<i>продовжуй тренуватись через /topics</i>"
     )
-    await message.answer(text=text, reply_markup=get_stats_keyboard(stats["grade"]))
+    await message.answer(
+        text=text,
+        reply_markup=get_profile_keyboard(profile["grade"]),
+    )
 
 
-@router.callback_query(F.data == "my_stats")
-async def handle_my_stats_callback(callback: CallbackQuery) -> None:
-    """Кнопка 'мій прогрес' з меню тем."""
+@router.callback_query(F.data.in_({"my_profile", "my_stats"}))
+async def handle_profile_callback(callback: CallbackQuery) -> None:
+    """Кнопка 'профіль та успішність' з меню тем."""
     tg_user = callback.from_user
-    stats = await TaskService.get_user_stats(tg_user.id)
+    profile = await TaskService.get_user_profile(tg_user.id)
     await callback.answer()
 
-    if not stats["grade"]:
+    if not profile["grade"]:
         await callback.answer("спочатку вибери клас", show_alert=True)
         return
 
+    safe_name = html.escape(profile["first_name"] or tg_user.first_name or "учень").lower()
     text = (
-        "<b>твій прогрес:</b>\n\n"
-        f"клас: {stats['grade']}\n"
-        f"розв'язано завдань: {stats['solved_unique']}\n"
-        f"всього спроб: {stats['total_attempts']}\n"
-        f"точність: {stats['accuracy']}%\n\n"
-        "<i>вибирай тему і покращуй результат:</i>"
+        f"<b>профіль: {safe_name}</b>\n"
+        f"клас: {profile['grade']}\n"
+        f"рівень: {profile['rank']}\n\n"
+        "<b>успішність:</b>\n"
+        f"розв'язано завдань: {profile['solved_unique']}\n"
+        f"точність: {profile['accuracy']}% {profile['progress_bar']}\n"
+        f"всього спроб: {profile['total_attempts']}\n\n"
+        "<b>активність:</b>\n"
+        f"сьогодні розв'язано: {profile['today_solved']}\n"
+        f"серія правильних відповідей: {profile['streak']}\n"
+        f"з нами: {profile['days_registered']} дн.\n\n"
+        "<i>вибирай тему та покращуй результат:</i>"
     )
 
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
             text=text,
-            reply_markup=get_stats_keyboard(stats["grade"]),
+            reply_markup=get_profile_keyboard(profile["grade"]),
         )

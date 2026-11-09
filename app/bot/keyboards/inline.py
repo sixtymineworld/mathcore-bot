@@ -34,10 +34,10 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
             callback_data=f"topic:{topic.id}",
         )
 
-    # Кнопки статистики та зміни класу
+    # Кнопки профілю та зміни класу
     builder.button(
-        text="мій прогрес",
-        callback_data="my_stats",
+        text="профіль та успішність",
+        callback_data="my_profile",
     )
     builder.button(
         text="змінити клас",
@@ -49,15 +49,24 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
     return builder.as_markup()
 
 
-def get_stats_keyboard(grade: int) -> InlineKeyboardMarkup:
-    """Генерує кнопку повернення зі статистики до тем."""
+def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
+    """Генерує кнопки для екрана профілю: повернення до тем або зміна класу."""
     builder = InlineKeyboardBuilder()
+    if grade:
+        builder.button(
+            text="до списку тем",
+            callback_data=f"topics_list:{grade}",
+        )
     builder.button(
-        text="до списку тем",
-        callback_data=f"topics_list:{grade}",
+        text="змінити клас",
+        callback_data="change_grade",
     )
     builder.adjust(1)
     return builder.as_markup()
+
+
+# Для зворотної сумісності
+get_stats_keyboard = get_profile_keyboard
 
 
 def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboardMarkup:

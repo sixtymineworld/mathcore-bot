@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from sqlalchemy import func, select
 
@@ -153,8 +154,27 @@ class TaskService:
             return attempt
 
     @staticmethod
-    async def get_user_stats(tg_id: int) -> dict:
-        """Повертає статистику навчального прогресу учня."""
+    def _make_progress_bar(percent: int, length: int = 8) -> str:
+        """Створює текстовий мінімалістичний прогрес-бар."""
+        filled = round(length * max(0, min(percent, 100)) / 100)
+        return f"[{'■' * filled}{'□' * (length - filled)}]"
+
+    @staticmethod
+    def _calculate_rank(solved_count: int) -> str:
+        """Визначає рівень майстерності учня за кількістю розв'язаних завдань."""
+        if solved_count < 3:
+            return "початківець"
+        elif solved_count < 8:
+            return "дослідник"
+        elif solved_count < 15:
+            return "практик"
+        elif solved_count < 25:
+            return "знавець"
+        return "майстер математики"
+
+    @staticmethod
+    async def get_user_profile(tg_id: int) -> dict:
+        """Повертає детальний профіль користувача: успішність, активність, серії та ранг."""
         async with get_session() as session:
             stmt = select(User).where(User.tg_id == tg_id)
             result = await session.execute(stmt)
@@ -166,7 +186,17 @@ class TaskService:
                     "total_attempts": 0,
                     "solved_unique": 0,
                     "accuracy": 0,
+                    "today_attempts": 0,
+                    "today_solved": 0,
+                    "streak": 0,
+                    "days_registered": 1,
+                    "rank": "початківець",
+                    "progress_bar": "[□□□□□□□□]",
                 }
+
+            now = datetime.now()
+            start_of_today = datetime(now.year, now.month, now.day, 0, 0, 0)
+            days_registered = max(1, (now.date() - user.created_at.date()).days + 1)
 
             # Загальна кількість спроб
             attempts_stmt = select(func.count(UserTaskAttempt.id)).where(
@@ -198,10 +228,51 @@ class TaskService:
                 else 0
             )
 
+            # Активність за сьогодні
+            today_attempts_stmt = select(func.count(UserTaskAttempt.id)).where(
+                UserTaskAttempt.user_id == user.id,
+                UserTaskAttempt.created_at >= start_of_today,
+            )
+            today_attempts = (await session.execute(today_attempts_stmt)).scalar() or 0
+
+            today_solved_stmt = select(func.count(func.distinct(UserTaskAttempt.task_id))).where(
+                UserTaskAttempt.user_id == user.id,
+                UserTaskAttempt.is_correct.is_(True),
+                UserTaskAttempt.created_at >= start_of_today,
+            )
+            today_solved = (await session.execute(today_solved_stmt)).scalar() or 0
+
+            # Поточна серія правильних відповідей підряд
+            recent_stmt = (
+                select(UserTaskAttempt.is_correct)
+                .where(UserTaskAttempt.user_id == user.id)
+                .order_by(UserTaskAttempt.created_at.desc(), UserTaskAttempt.id.desc())
+                .limit(20)
+            )
+            recent_results = (await session.execute(recent_stmt)).scalars().all()
+            streak = 0
+            for is_corr in recent_results:
+                if is_corr:
+                    streak += 1
+                else:
+                    break
+
+            rank = TaskService._calculate_rank(solved_unique)
+            progress_bar = TaskService._make_progress_bar(accuracy)
+
             return {
                 "grade": user.grade,
                 "first_name": user.first_name,
                 "total_attempts": total_attempts,
                 "solved_unique": solved_unique,
                 "accuracy": accuracy,
+                "today_attempts": today_attempts,
+                "today_solved": today_solved,
+                "streak": streak,
+                "days_registered": days_registered,
+                "rank": rank,
+                "progress_bar": progress_bar,
             }
+
+    # Для зворотної сумісності
+    get_user_stats = get_user_profile
