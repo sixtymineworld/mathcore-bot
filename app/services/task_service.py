@@ -1,8 +1,8 @@
 import logging
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.db.base import get_session
-from app.db.models import Task, Topic, User
+from app.db.models import Task, Topic, User, UserTaskAttempt
 
 logger = logging.getLogger(__name__)
 
@@ -102,3 +102,82 @@ class TaskService:
             await session.commit()
             await session.refresh(db_user)
             return db_user
+
+    @staticmethod
+    async def record_task_attempt(
+        tg_id: int,
+        task_id: int,
+        is_correct: bool,
+        user_answer: str,
+    ) -> UserTaskAttempt | None:
+        """Зберігає результат спроби розв'язання завдання учнем."""
+        async with get_session() as session:
+            stmt = select(User).where(User.tg_id == tg_id)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            if not user:
+                return None
+
+            attempt = UserTaskAttempt(
+                user_id=user.id,
+                task_id=task_id,
+                is_correct=is_correct,
+                user_answer=user_answer[:255],
+            )
+            session.add(attempt)
+            await session.commit()
+            return attempt
+
+    @staticmethod
+    async def get_user_stats(tg_id: int) -> dict:
+        """Повертає статистику навчального прогресу учня."""
+        async with get_session() as session:
+            stmt = select(User).where(User.tg_id == tg_id)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            if not user:
+                return {
+                    "grade": None,
+                    "first_name": "",
+                    "total_attempts": 0,
+                    "solved_unique": 0,
+                    "accuracy": 0,
+                }
+
+            # Загальна кількість спроб
+            attempts_stmt = select(func.count(UserTaskAttempt.id)).where(
+                UserTaskAttempt.user_id == user.id
+            )
+            total_attempts = (await session.execute(attempts_stmt)).scalar() or 0
+
+            # Кількість розв'язаних унікальних завдань
+            solved_stmt = select(
+                func.count(func.distinct(UserTaskAttempt.task_id))
+            ).where(
+                UserTaskAttempt.user_id == user.id,
+                UserTaskAttempt.is_correct.is_(True),
+            )
+            solved_unique = (await session.execute(solved_stmt)).scalar() or 0
+
+            # Кількість правильних спроб для розрахунку точності
+            correct_attempts_stmt = select(func.count(UserTaskAttempt.id)).where(
+                UserTaskAttempt.user_id == user.id,
+                UserTaskAttempt.is_correct.is_(True),
+            )
+            correct_attempts = (
+                await session.execute(correct_attempts_stmt)
+            ).scalar() or 0
+
+            accuracy = (
+                round((correct_attempts / total_attempts) * 100)
+                if total_attempts > 0
+                else 0
+            )
+
+            return {
+                "grade": user.grade,
+                "first_name": user.first_name,
+                "total_attempts": total_attempts,
+                "solved_unique": solved_unique,
+                "accuracy": accuracy,
+            }

@@ -5,7 +5,7 @@ from app.db.base import (
     get_session,
     init_db,
 )
-from app.db.models import Task, Topic, User
+from app.db.models import Task, Topic, User, UserTaskAttempt
 
 __all__ = [
     "Base",
@@ -16,4 +16,5 @@ __all__ = [
     "User",
     "Topic",
     "Task",
+    "UserTaskAttempt",
 ]

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -32,6 +32,12 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+    # Зв'язок зі спробами розв'язання завдань
+    attempts: Mapped[list["UserTaskAttempt"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
@@ -93,3 +99,39 @@ class Task(Base):
 
     def __repr__(self) -> str:
         return f"<Task(id={self.id}, topic_id={self.topic_id}, title='{self.title}')>"
+
+
+class UserTaskAttempt(Base):
+    """Модель спроби розв'язання завдання учнем (історія та прогрес)."""
+
+    __tablename__ = "user_task_attempts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    task_id: Mapped[int] = mapped_column(
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    user_answer: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # Зв'язки
+    user: Mapped["User"] = relationship(back_populates="attempts")
+    task: Mapped["Task"] = relationship()
+
+    def __repr__(self) -> str:
+        return (
+            f"<UserTaskAttempt(id={self.id}, user_id={self.user_id}, "
+            f"task_id={self.task_id}, is_correct={self.is_correct})>"
+        )

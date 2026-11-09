@@ -230,6 +230,14 @@ async def handle_user_answer(message: Message, state: FSMContext) -> None:
         grade=grade,
     )
 
+    # Зберігаємо результат спроби в статистику
+    await TaskService.record_task_attempt(
+        tg_id=message.from_user.id,
+        task_id=task.id,
+        is_correct=result.is_correct,
+        user_answer=message.text,
+    )
+
     next_task = await TaskService.get_next_task(
         topic_id=task.topic_id,
         current_task_id=task.id,

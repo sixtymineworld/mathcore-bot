@@ -6,7 +6,11 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from app.bot.keyboards.inline import get_grades_keyboard, get_topics_keyboard
+from app.bot.keyboards.inline import (
+    get_grades_keyboard,
+    get_stats_keyboard,
+    get_topics_keyboard,
+)
 from app.bot.states.user_state import UserState
 from app.services.task_service import TaskService
 
@@ -139,3 +143,53 @@ async def handle_topics_command(message: Message, state: FSMContext) -> None:
         text=f"<b>навчальні теми для {user.grade} класу:</b>\nвиберіть тему для тренування:",
         reply_markup=get_topics_keyboard(topics, user.grade),
     )
+
+
+@router.message(Command("stats", "profile"))
+async def handle_stats_command(message: Message) -> None:
+    """Команда /stats або /profile для перегляду навчального прогресу."""
+    tg_user = message.from_user
+    if not tg_user:
+        return
+
+    stats = await TaskService.get_user_stats(tg_user.id)
+    if not stats["grade"]:
+        await message.answer("спочатку вибери свій клас через команду /start.")
+        return
+
+    text = (
+        "<b>твій прогрес:</b>\n\n"
+        f"клас: {stats['grade']}\n"
+        f"розв'язано завдань: {stats['solved_unique']}\n"
+        f"всього спроб: {stats['total_attempts']}\n"
+        f"точність: {stats['accuracy']}%\n\n"
+        "<i>продовжуй тренуватись через /topics</i>"
+    )
+    await message.answer(text=text, reply_markup=get_stats_keyboard(stats["grade"]))
+
+
+@router.callback_query(F.data == "my_stats")
+async def handle_my_stats_callback(callback: CallbackQuery) -> None:
+    """Кнопка 'мій прогрес' з меню тем."""
+    tg_user = callback.from_user
+    stats = await TaskService.get_user_stats(tg_user.id)
+    await callback.answer()
+
+    if not stats["grade"]:
+        await callback.answer("спочатку вибери клас", show_alert=True)
+        return
+
+    text = (
+        "<b>твій прогрес:</b>\n\n"
+        f"клас: {stats['grade']}\n"
+        f"розв'язано завдань: {stats['solved_unique']}\n"
+        f"всього спроб: {stats['total_attempts']}\n"
+        f"точність: {stats['accuracy']}%\n\n"
+        "<i>вибирай тему і покращуй результат:</i>"
+    )
+
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(
+            text=text,
+            reply_markup=get_stats_keyboard(stats["grade"]),
+        )

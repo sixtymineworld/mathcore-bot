@@ -34,13 +34,28 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
             callback_data=f"topic:{topic.id}",
         )
 
-    # Кнопка для зміни класу
+    # Кнопки статистики та зміни класу
+    builder.button(
+        text="мій прогрес",
+        callback_data="my_stats",
+    )
     builder.button(
         text="змінити клас",
         callback_data="change_grade",
     )
 
     # Розташування: кожна тема на окремому рядку
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_stats_keyboard(grade: int) -> InlineKeyboardMarkup:
+    """Генерує кнопку повернення зі статистики до тем."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="до списку тем",
+        callback_data=f"topics_list:{grade}",
+    )
     builder.adjust(1)
     return builder.as_markup()
 
