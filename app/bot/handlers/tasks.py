@@ -49,7 +49,7 @@ async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> N
 
 @router.callback_query(F.data.startswith("topic:"))
 async def handle_topic_selection(callback: CallbackQuery, state: FSMContext) -> None:
-    """Обробник вибору конкретної теми. Відкриває перше завдання теми."""
+    """Обробник вибору теми: щоразу генерує нове завдання суворо за обраною темою."""
     if not callback.data or not callback.message:
         return
 
@@ -59,24 +59,54 @@ async def handle_topic_selection(callback: CallbackQuery, state: FSMContext) -> 
         await callback.answer("помилка вибору теми.", show_alert=True)
         return
 
+    await generate_and_show_task(callback, topic_id)
+
+
+@router.callback_query(F.data.startswith("new_task:"))
+async def handle_generate_another_task(callback: CallbackQuery, state: FSMContext) -> None:
+    """Генерує ще одне нове завдання за поточною темою."""
+    if not callback.data or not callback.message:
+        return
+
+    try:
+        topic_id = int(callback.data.split(":")[1])
+    except (IndexError, ValueError):
+        await callback.answer("помилка генерації завдання.", show_alert=True)
+        return
+
+    await state.clear()
+    await generate_and_show_task(callback, topic_id)
+
+
+async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None:
+    """Допоміжна функція для генерації та відображення нового завдання за темою."""
     topic = await TaskService.get_topic_by_id(topic_id)
     if not topic:
         await callback.answer("тему не знайдено.", show_alert=True)
         return
 
-    tasks = await TaskService.get_tasks_by_topic(topic_id)
-    if not tasks:
-        await callback.answer("завдання для цієї теми ще готуються!", show_alert=True)
-        return
-
-    first_task = tasks[0]
     await callback.answer()
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text("<i>генерую нове завдання за темою...</i>")
 
-    stars = format_difficulty(first_task.difficulty)
+    ai_checker = get_ai_checker()
+    generated = await ai_checker.generate_task(grade=topic.grade, topic=topic.title)
+
+    # Зберігаємо згенеровану задачу в базу даних
+    task = await TaskService.create_generated_task(
+        topic_id=topic.id,
+        title=generated.title,
+        question_text=generated.question,
+        solution_hint=generated.hint,
+        correct_answer=generated.correct_answer,
+        difficulty=generated.difficulty,
+    )
+
+    stars = format_difficulty(task.difficulty)
     text = (
         f"<b>тема:</b> {topic.title}\n"
-        f"<b>завдання:</b> {first_task.title} (складність: {stars})\n\n"
-        f"{first_task.question_text}\n\n"
+        f"<b>завдання:</b> {task.title} (складність: {stars})\n\n"
+        f"{task.question_text}\n\n"
         "<i>вибирай дію нижче:</i>"
     )
 
@@ -84,7 +114,7 @@ async def handle_topic_selection(callback: CallbackQuery, state: FSMContext) -> 
         await callback.message.edit_text(
             text=text,
             reply_markup=get_task_keyboard(
-                task_id=first_task.id,
+                task_id=task.id,
                 topic_id=topic.id,
                 grade=topic.grade,
             ),

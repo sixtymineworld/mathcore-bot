@@ -51,6 +51,30 @@ class TaskService:
             return result.scalar_one_or_none()
 
     @staticmethod
+    async def create_generated_task(
+        topic_id: int,
+        title: str,
+        question_text: str,
+        solution_hint: str,
+        correct_answer: str,
+        difficulty: int = 1,
+    ) -> Task:
+        """Створює та зберігає згенероване завдання в базі даних."""
+        async with get_session() as session:
+            task = Task(
+                topic_id=topic_id,
+                title=title,
+                question_text=question_text,
+                solution_hint=solution_hint,
+                correct_answer=correct_answer,
+                difficulty=difficulty,
+            )
+            session.add(task)
+            await session.commit()
+            await session.refresh(task)
+            return task
+
+    @staticmethod
     async def get_next_task(topic_id: int, current_task_id: int) -> Task | None:
         """Знаходить наступне завдання в темі після поточного."""
         async with get_session() as session:

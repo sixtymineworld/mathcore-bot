@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     DB_NAME: str = Field(default="mathcore", description="Назва бази даних MySQL")
     DB_ECHO: bool = Field(default=False, description="Логування SQL-запитів")
 
+    # Налаштування AI (Google Gemini)
+    GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
+    GEMINI_MODEL: str = Field(default="gemini-2.0-flash", description="Назва моделі Gemini")
+
     @computed_field
     @property
     def DATABASE_URL(self) -> str:

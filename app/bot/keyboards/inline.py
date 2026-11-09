@@ -73,12 +73,15 @@ def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboard
         callback_data=f"hint:{task_id}",
     )
     builder.button(
+        text="нова задача з цієї теми",
+        callback_data=f"new_task:{topic_id}",
+    )
+    builder.button(
         text="до списку інших тем",
         callback_data=f"topics_list:{grade}",
     )
 
-    # Дві кнопки дій в один рядок, повернення в окремий рядок
-    builder.adjust(2, 1)
+    builder.adjust(2, 1, 1)
     return builder.as_markup()
 
 
@@ -101,6 +104,11 @@ def get_task_navigation_keyboard(
             text="отримати підказку",
             callback_data=f"hint:{current_task_id}",
         )
+
+    builder.button(
+        text="нова задача з цієї теми",
+        callback_data=f"new_task:{topic_id}",
+    )
 
     if next_task_id is not None:
         builder.button(
