@@ -41,6 +41,20 @@ async def on_startup(bot: Bot) -> None:
         ]
     )
 
+    if settings.WEB_APP_URL:
+        from aiogram.types import MenuButtonWebApp, WebAppInfo
+
+        try:
+            await bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="застосунок",
+                    web_app=WebAppInfo(url=settings.WEB_APP_URL),
+                )
+            )
+            logger.info("Встановлено кнопку меню WebApp: %s", settings.WEB_APP_URL)
+        except Exception as e:
+            logger.warning("Не вдалося встановити кнопку меню WebApp: %s", e)
+
 
 async def on_shutdown(bot: Bot) -> None:
     """Хук зупинки: коректне закриття з'єднань з базою даних."""

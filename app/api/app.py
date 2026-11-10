@@ -59,6 +59,12 @@ def create_app() -> FastAPI:
         app.mount("/app", StaticFiles(directory=str(static_dir), html=True), name="static_tma")
         logger.info("Статичні файли TMA змонтовано на /app з каталогу: %s", static_dir)
 
+        from fastapi.responses import RedirectResponse
+
+        @app.get("/", include_in_schema=False)
+        async def root_redirect():
+            return RedirectResponse(url="/app/")
+
     return app
 
 

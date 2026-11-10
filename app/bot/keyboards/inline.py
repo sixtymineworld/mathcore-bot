@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from app.config import settings
 
 if TYPE_CHECKING:
     from app.db.models import Topic
@@ -34,7 +36,12 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
             callback_data=f"topic:{topic.id}",
         )
 
-    # Кнопки профілю та зміни класу
+    # Кнопки застосунку, профілю та зміни класу
+    if settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити застосунок",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
     builder.button(
         text="профіль та успішність",
         callback_data="my_profile",
@@ -52,6 +59,11 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
 def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
     """Генерує кнопки для екрана профілю: повернення до тем або зміна класу."""
     builder = InlineKeyboardBuilder()
+    if settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити застосунок",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
     if grade:
         builder.button(
             text="до списку тем",
