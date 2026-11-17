@@ -9,9 +9,9 @@ if TYPE_CHECKING:
 
 
 def get_grades_keyboard() -> InlineKeyboardMarkup:
-    """Генерує інлайн-клавіатуру для вибору класу (1–11 класи).
+    """Генерує інлайн-клавіатуру для вибору класу (1–11 класи) та швидкого входу в додаток.
 
-    Розташування: сітка по 4 кнопки в рядку (4, 4, 3).
+    Розташування: сітка по 4 кнопки в рядку (4, 4, 3) + кнопка застосунку.
     Формат callback_data: 'grade:{number}'.
     """
     builder = InlineKeyboardBuilder()
@@ -22,7 +22,15 @@ def get_grades_keyboard() -> InlineKeyboardMarkup:
             callback_data=f"grade:{grade}",
         )
 
-    builder.adjust(4, 4, 3)
+    if settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити застосунок",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
+        builder.adjust(4, 4, 3, 1)
+    else:
+        builder.adjust(4, 4, 3)
+
     return builder.as_markup()
 
 

@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import delete
+from sqlalchemy import delete, func, select
 
 from app.db.base import get_session
 from app.db.models import Task, Topic
@@ -1124,10 +1124,11 @@ INITIAL_CURRICULUM = [
 async def seed_initial_data() -> None:
     """Заповнює або оновлює навчальні теми та задачі за єдиним стилем."""
     async with get_session() as session:
-        # Очищуємо старі теми та завдання
-        await session.execute(delete(Task))
-        await session.execute(delete(Topic))
-        await session.commit()
+        # Перевірка: якщо теми вже заповнені, пропускаємо повторний сід
+        stmt = select(func.count(Topic.id))
+        count = (await session.execute(stmt)).scalar() or 0
+        if count > 0:
+            return
 
         logger.info("Синхронізація структурованих навчальних матеріалів 1–11 класів...")
 

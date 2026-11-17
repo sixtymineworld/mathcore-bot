@@ -27,6 +27,7 @@ async def handle_start(message: Message, state: FSMContext) -> None:
 
     Реєструє або оновлює користувача в базі даних та пропонує обрати клас.
     """
+    logger.info("Отримано команду /start від користувача: %s", message.from_user.id if message.from_user else "unknown")
     tg_user = message.from_user
     if not tg_user:
         return

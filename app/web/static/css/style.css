@@ -187,6 +187,20 @@ body {
   font-weight: 500;
   color: var(--hint-color);
   text-transform: lowercase;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--sand-soft);
+  border: 1px solid var(--sand-deep);
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.user-badge:active {
+  transform: scale(0.96);
+  background: var(--sand-deep);
 }
 
 .user-badge span {
@@ -245,6 +259,16 @@ body {
   color: var(--noir);
   text-transform: lowercase;
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.hero-pill:active {
+  transform: scale(0.96);
+  background: rgba(77, 48, 26, 0.16);
 }
 
 .hero-pill-dot {
@@ -434,8 +458,15 @@ body {
   font-weight: 500;
   color: var(--text-color);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
   text-transform: lowercase;
+}
+
+.grade-chip:active {
+  transform: scale(0.96);
 }
 
 .grade-chip.active {
@@ -1265,7 +1296,14 @@ body {
   opacity: 0.65;
   cursor: pointer;
   padding: 6px 18px;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-item:active {
+  transform: scale(0.94);
 }
 
 .nav-item.active {
