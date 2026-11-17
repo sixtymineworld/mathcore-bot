@@ -1,3 +1,95 @@
+/* ==========================================================================
+   Шрифтова система mathcore:
+   - Українська мова (кирилиця): Taktika Sans / Onest (сучасний відкритий неогротеск)
+   - Англійська мова (латиниця): Apple Garamond (з якісними локальними та веб-фолбеками)
+   - Цифри (0-9): Taktika Sans / Onest
+   ========================================================================== */
+
+/* Apple Garamond для англійських літер (латиниця A-Z, a-z) */
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Apple Garamond'), local('AppleGaramond'), local('EB Garamond'), local('Garamond');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Apple Garamond SemiBold'), local('AppleGaramond-SemiBold'), local('EB Garamond SemiBold'), local('EB Garamond'), local('Garamond');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Apple Garamond Bold'), local('AppleGaramond-Bold'), local('EB Garamond Bold'), local('EB Garamond'), local('Garamond Bold'), local('Garamond');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: normal;
+  font-weight: 800;
+  src: local('Apple Garamond ExtraBold'), local('AppleGaramond-ExtraBold'), local('EB Garamond ExtraBold'), local('EB Garamond Bold'), local('Garamond Bold'), local('Garamond');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Apple Garamond Italic'), local('AppleGaramond-Italic'), local('EB Garamond Italic'), local('Garamond Italic');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+@font-face {
+  font-family: 'AppleGaramondLatin';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Apple Garamond Bold Italic'), local('AppleGaramond-BoldItalic'), local('EB Garamond Bold Italic'), local('EB Garamond'), local('Garamond Bold Italic');
+  unicode-range: U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-00FF, U+0100-017F;
+}
+
+/* Локальний Taktika Sans для української мови та цифр */
+@font-face {
+  font-family: 'Taktika Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Taktika Sans'), local('TaktikaSans'), local('Taktika'), local('Taktika Sans Regular');
+}
+
+@font-face {
+  font-family: 'Taktika Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Taktika Sans Medium'), local('TaktikaSans-Medium'), local('Taktika Medium');
+}
+
+@font-face {
+  font-family: 'Taktika Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Taktika Sans SemiBold'), local('TaktikaSans-SemiBold'), local('Taktika SemiBold');
+}
+
+@font-face {
+  font-family: 'Taktika Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Taktika Sans Bold'), local('TaktikaSans-Bold'), local('Taktika Bold');
+}
+
+@font-face {
+  font-family: 'Taktika Sans';
+  font-style: normal;
+  font-weight: 800;
+  src: local('Taktika Sans ExtraBold'), local('TaktikaSans-ExtraBold'), local('Taktika ExtraBold'), local('Taktika Sans Black');
+}
+
 :root {
   /* palette */
   --sand: #e3c9b0;          /* desert sand — основа */
@@ -16,12 +108,18 @@
   --success-color: #b9c68f;
   --error-color: #e69a82;
 
-  /* Класична кавово-літературна типографіка (Libertinus family + EB Garamond) */
-  --font-display: "Libertinus Sans", "Alegreya Sans", -apple-system, sans-serif;
-  --font-serif: "Libertinus Serif", "EB Garamond", Georgia, serif;
-  --font-sans: "Libertinus Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-math: "Libertinus Serif", "EB Garamond", KaTeX_Main, Georgia, serif;
+  /* Шрифтові змінні:
+     - Англійська мова (латиниця A-Z, a-z): Apple Garamond
+     - Українська мова (кирилиця) та цифри (0-9): Taktika Sans, Onest, Plus Jakarta Sans
+  */
+  --font-ukr-neo: "Taktika Sans", "Onest", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-base: "AppleGaramondLatin", var(--font-ukr-neo);
+  --font-display: "AppleGaramondLatin", var(--font-ukr-neo);
+  --font-serif: "AppleGaramondLatin", var(--font-ukr-neo);
+  --font-sans: var(--font-base);
+  --font-digits: var(--font-ukr-neo);
+  --font-mono: var(--font-ukr-neo);
+  --font-math: "AppleGaramondLatin", var(--font-ukr-neo), KaTeX_Main, Georgia, serif;
 }
 
 * {

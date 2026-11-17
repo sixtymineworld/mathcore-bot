@@ -7,7 +7,7 @@
 - Пастельне заливання фігур: `rgba(201, 168, 136, 0.25)`
 - Пунктирні лінії (висоти, невидимі ребра, діагоналі): `stroke-dasharray="4,4"`
 - Акценти (кути, дотичні, точки): `#c9a888` (warm caramel)
-- Шрифти підписів: Libertinus Sans / EB Garamond
+- Шрифти підписів: вершини та латиниця — 'Apple Garamond' / 'EB Garamond'; розміри, координати та цифри — 'Taktika Sans' / 'Onest'
 """
 
 
@@ -31,16 +31,16 @@ def diagram_right_trapezoid(
   <rect x="156" y="166" width="14" height="14" fill="none" stroke="#4d301a" stroke-width="1.5"/>
   <!-- Дуга кута D -->
   <path d="M 285,180 A 25 25 0 0 0 293,166" fill="none" stroke="#c9a888" stroke-width="2"/>
-  <text x="270" y="172" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="700" fill="#4d301a">{angle_d}°</text>
+  <text x="270" y="172" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" fill="#4d301a">{angle_d}°</text>
   <!-- Вершини -->
-  <text x="30" y="195" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
-  <text x="30" y="60" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
-  <text x="170" y="52" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
-  <text x="320" y="195" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
-  <text x="165" y="198" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">H</text>
+  <text x="30" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
+  <text x="30" y="60" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
+  <text x="170" y="52" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
+  <text x="320" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
+  <text x="165" y="198" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">H</text>
   <!-- Розміри -->
-  <text x="105" y="58" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">BC = {bc}</text>
-  <text x="250" y="115" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">CD = {cd}</text>
+  <text x="105" y="58" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">BC = {bc}</text>
+  <text x="250" y="115" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">CD = {cd}</text>
   <!-- Точки вершин -->
   <circle cx="50" cy="180" r="3.5" fill="#4d301a"/>
   <circle cx="50" cy="65" r="3.5" fill="#4d301a"/>
@@ -63,13 +63,13 @@ def diagram_right_triangle_altitude(ad: int = 9, db: int = 16, cd: int = 12) -> 
   <!-- Прямий кут у точці C (повернутий) -->
   <path d="M 141,66 L 150,74 L 159,64" fill="none" stroke="#4d301a" stroke-width="1.5"/>
   <!-- Вершини -->
-  <text x="22" y="195" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
-  <text x="145" y="42" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
-  <text x="338" y="195" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
-  <text x="145" y="198" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
+  <text x="22" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
+  <text x="145" y="42" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
+  <text x="338" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
+  <text x="145" y="198" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
   <!-- Розміри проекцій -->
-  <text x="85" y="198" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AD = {ad}</text>
-  <text x="225" y="198" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">DB = {db}</text>
+  <text x="85" y="198" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AD = {ad}</text>
+  <text x="225" y="198" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">DB = {db}</text>
   <!-- Точки -->
   <circle cx="40" cy="180" r="3.5" fill="#4d301a"/>
   <circle cx="150" cy="55" r="3.5" fill="#4d301a"/>
@@ -97,13 +97,13 @@ def diagram_circle_tangents(r: int = 8, angle_m: int = 60, dist: int = 16) -> st
   <path d="M 189,162 L 199,156 L 205,168" fill="none" stroke="#4d301a" stroke-width="1.5"/>
   <!-- Дуга кута M -->
   <path d="M 85,105 A 35 35 0 0 1 85,125" fill="none" stroke="#c9a888" stroke-width="2"/>
-  <text x="95" y="119" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="700" fill="#4d301a">{angle_m}°</text>
+  <text x="95" y="119" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" fill="#4d301a">{angle_m}°</text>
   <!-- Підписи -->
-  <text x="30" y="120" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">M</text>
-  <text x="195" y="45" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
-  <text x="195" y="195" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
-  <text x="240" y="120" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">O</text>
-  <text x="220" y="80" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">r = {r}</text>
+  <text x="30" y="120" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">M</text>
+  <text x="195" y="45" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
+  <text x="195" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
+  <text x="240" y="120" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">O</text>
+  <text x="220" y="80" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">r = {r}</text>
   <!-- Точки -->
   <circle cx="50" cy="115" r="3.5" fill="#4d301a"/>
   <circle cx="196" cy="56" r="3.5" fill="#4d301a"/>
@@ -137,16 +137,16 @@ def diagram_quadrangular_pyramid(base_a: int = 12, height: int = 8, apothem: int
   <line x1="185" y1="35" x2="230" y2="140" stroke="#8c6239" stroke-width="2" stroke-dasharray="4,4"/>
   <line x1="185" y1="167" x2="230" y2="140" stroke="#c9a888" stroke-width="1.5" stroke-dasharray="3,3"/>
   <!-- Підписи -->
-  <text x="182" y="26" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">S</text>
-  <text x="50" y="190" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
-  <text x="210" y="228" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
-  <text x="310" y="150" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
-  <text x="145" y="130" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
-  <text x="175" y="180" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#4d301a">O</text>
-  <text x="235" y="135" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#8c6239">K</text>
+  <text x="182" y="26" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">S</text>
+  <text x="50" y="190" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
+  <text x="210" y="228" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
+  <text x="310" y="150" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
+  <text x="145" y="130" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
+  <text x="175" y="180" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">O</text>
+  <text x="235" y="135" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#8c6239">K</text>
   <!-- Розміри -->
-  <text x="125" y="212" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AB = {base_a}</text>
-  <text x="190" y="105" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#4d301a">h = {height}</text>
+  <text x="125" y="212" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AB = {base_a}</text>
+  <text x="190" y="105" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#4d301a">h = {height}</text>
   <!-- Точки -->
   <circle cx="185" cy="35" r="3.5" fill="#4d301a"/>
   <circle cx="70" cy="180" r="3.5" fill="#4d301a"/>
@@ -178,13 +178,13 @@ def diagram_cylinder(d: int = 8, h: int = 8) -> str:
   <!-- Вісь циліндра O1O2 -->
   <line x1="190" y1="55" x2="190" y2="175" stroke="#4d301a" stroke-width="1.5" stroke-dasharray="4,4"/>
   <!-- Підписи вершин перерізу -->
-  <text x="105" y="55" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">B</text>
-  <text x="268" y="55" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">C</text>
-  <text x="105" y="185" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">A</text>
-  <text x="268" y="185" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
-  <text x="185" y="45" font-family="'Libertinus Sans', serif" font-size="13" font-weight="700" fill="#4d301a">O₁</text>
-  <text x="185" y="195" font-family="'Libertinus Sans', serif" font-size="13" font-weight="700" fill="#4d301a">O₂</text>
-  <text x="195" y="110" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AC = 8√2</text>
+  <text x="105" y="55" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">B</text>
+  <text x="268" y="55" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">C</text>
+  <text x="105" y="185" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">A</text>
+  <text x="268" y="185" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
+  <text x="185" y="45" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="13" font-weight="700" fill="#4d301a">O₁</text>
+  <text x="185" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="13" font-weight="700" fill="#4d301a">O₂</text>
+  <text x="195" y="110" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AC = 8√2</text>
 </svg>"""
 
 
@@ -215,16 +215,16 @@ def diagram_function_roots() -> str:
   <polygon points="360,140 352,136 352,144" fill="#4d301a"/>
   <line x1="190" y1="200" x2="190" y2="25" stroke="#4d301a" stroke-width="2"/>
   <polygon points="190,25 186,33 194,33" fill="#4d301a"/>
-  <text x="355" y="157" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
-  <text x="175" y="32" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
-  <text x="178" y="155" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">0</text>
-  <text x="216" y="155" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">1</text>
-  <text x="178" y="114" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">1</text>
-  <text x="65" y="155" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">-4</text>
-  <text x="335" y="155" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">5</text>
+  <text x="355" y="157" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
+  <text x="175" y="32" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
+  <text x="178" y="155" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">0</text>
+  <text x="216" y="155" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">1</text>
+  <text x="178" y="114" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">1</text>
+  <text x="65" y="155" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">-4</text>
+  <text x="335" y="155" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">5</text>
   <!-- Пряма y = 1 -->
   <line x1="35" y1="110" x2="350" y2="110" stroke="#c9a888" stroke-width="2" stroke-dasharray="5,4"/>
-  <text x="35" y="104" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="700" fill="#8c6239">y = 1</text>
+  <text x="35" y="104" font-family="'Apple Garamond', 'EB Garamond', 'Taktika Sans', 'Onest', sans-serif" font-size="13" font-weight="700" fill="#8c6239">y = 1</text>
   <!-- Крива y = f(x) -->
   <path d="M 70,185 C 100,50 140,50 170,120 C 195,175 230,170 260,70 C 285,-10 320,110 340,140" fill="none" stroke="#4d301a" stroke-width="2.5" stroke-linecap="round"/>
   <!-- Точки перетину з y = 1 -->
@@ -257,20 +257,20 @@ def diagram_derivative_tangent() -> str:
   <line x1="180" y1="200" x2="180" y2="25" stroke="#4d301a" stroke-width="2"/>
   <polygon points="180,25 176,33 184,33" fill="#4d301a"/>
   <!-- Підписи осей -->
-  <text x="355" y="157" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
-  <text x="165" y="32" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
-  <text x="168" y="155" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">0</text>
+  <text x="355" y="157" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
+  <text x="165" y="32" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
+  <text x="168" y="155" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#4d301a">0</text>
   <!-- Дотична лінія (через вузли сітки) -->
   <line x1="80" y1="185" x2="280" y2="35" stroke="#8c6239" stroke-width="2.2"/>
   <!-- Точки на дотичній: A(-2, -1) ~ (140, 155), B(2, 5) ~ (220, 65) -->
   <circle cx="140" cy="155" r="4.5" fill="#c9a888" stroke="#4d301a" stroke-width="1.8"/>
-  <text x="110" y="165" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#4d301a">A(-2; -1)</text>
+  <text x="110" y="165" font-family="'Apple Garamond', 'EB Garamond', 'Taktika Sans', 'Onest', sans-serif" font-size="14" font-weight="700" fill="#4d301a">A(-2; -1)</text>
   <circle cx="220" cy="95" r="4.5" fill="#c9a888" stroke="#4d301a" stroke-width="1.8"/>
-  <text x="230" y="95" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#4d301a">B(2; 5)</text>
+  <text x="230" y="95" font-family="'Apple Garamond', 'EB Garamond', 'Taktika Sans', 'Onest', sans-serif" font-size="14" font-weight="700" fill="#4d301a">B(2; 5)</text>
   <!-- Графік y = f(x) з точкою дотику -->
   <path d="M 100,195 Q 160,170 180,125 T 260,35" fill="none" stroke="#4d301a" stroke-width="2.2" stroke-linecap="round"/>
   <circle cx="180" cy="125" r="4" fill="#4d301a"/>
-  <text x="190" y="130" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#4d301a">(x₀; y₀)</text>
+  <text x="190" y="130" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">(x₀; y₀)</text>
 </svg>"""
 
 
@@ -286,14 +286,14 @@ def diagram_rhombus_diagonals(d1: int = 24, d2: int = 10, side: int = 13) -> str
   <!-- Прямий кут у центрі O -->
   <rect x="190" y="103" width="12" height="12" fill="none" stroke="#4d301a" stroke-width="1.5"/>
   <!-- Вершини -->
-  <text x="185" y="30" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
-  <text x="320" y="120" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
-  <text x="185" y="208" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
-  <text x="50" y="120" font-family="'Libertinus Sans', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
-  <text x="195" y="110" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#8c6239">O</text>
+  <text x="185" y="30" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">B</text>
+  <text x="320" y="120" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">C</text>
+  <text x="185" y="208" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">D</text>
+  <text x="50" y="120" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="16" font-weight="700" fill="#4d301a">A</text>
+  <text x="195" y="110" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#8c6239">O</text>
   <!-- Розміри діагоналей -->
-  <text x="105" y="105" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AC = {d1}</text>
-  <text x="198" y="75" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">BD = {d2}</text>
+  <text x="105" y="105" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AC = {d1}</text>
+  <text x="198" y="75" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">BD = {d2}</text>
   <!-- Точки -->
   <circle cx="190" cy="40" r="3.5" fill="#4d301a"/>
   <circle cx="310" cy="115" r="3.5" fill="#4d301a"/>
@@ -327,19 +327,19 @@ def diagram_vectors() -> str:
   <line x1="130" y1="205" x2="130" y2="25" stroke="#4d301a" stroke-width="2"/>
   <polygon points="130,25 126,33 134,33" fill="#4d301a"/>
   <!-- Підписи осей -->
-  <text x="345" y="137" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
-  <text x="115" y="32" font-family="'Libertinus Sans', sans-serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
-  <text x="115" y="135" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#4d301a">O</text>
+  <text x="345" y="137" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">x</text>
+  <text x="115" y="32" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="14" font-weight="700" fill="#4d301a">y</text>
+  <text x="115" y="135" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="13" font-weight="600" fill="#4d301a">O</text>
   <!-- Вектор a(3; 4) -> x = 130 + 3*25 = 205, y = 120 - 4*17.5 = 50 -->
   <line x1="130" y1="120" x2="205" y2="50" stroke="#4d301a" stroke-width="2.5"/>
   <polygon points="205,50 195,54 200,61" fill="#4d301a"/>
-  <text x="160" y="70" font-family="'Libertinus Sans', sans-serif" font-size="15" font-weight="700" fill="#4d301a">a⃗</text>
-  <text x="212" y="48" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#4d301a">A(3; 4)</text>
+  <text x="160" y="70" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">a⃗</text>
+  <text x="212" y="48" font-family="'Apple Garamond', 'EB Garamond', 'Taktika Sans', 'Onest', sans-serif" font-size="14" font-weight="700" fill="#4d301a">A(3; 4)</text>
   <!-- Вектор b(6; -2) -> x = 130 + 6*25 = 280, y = 120 + 2*17.5 = 155 -->
   <line x1="130" y1="120" x2="280" y2="155" stroke="#8c6239" stroke-width="2.5"/>
   <polygon points="280,155 272,148 269,156" fill="#8c6239"/>
-  <text x="220" y="152" font-family="'Libertinus Sans', sans-serif" font-size="15" font-weight="700" fill="#8c6239">b⃗</text>
-  <text x="286" y="165" font-family="'Libertinus Sans', serif" font-size="14" font-weight="700" fill="#8c6239">B(6; -2)</text>
+  <text x="220" y="152" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#8c6239">b⃗</text>
+  <text x="286" y="165" font-family="'Apple Garamond', 'EB Garamond', 'Taktika Sans', 'Onest', sans-serif" font-size="14" font-weight="700" fill="#8c6239">B(6; -2)</text>
 </svg>"""
 
 
@@ -365,17 +365,17 @@ def diagram_box_prism(a: int = 3, b: int = 4, angle: int = 45) -> str:
   <!-- Просторова діагональ BD₁ (пунктир) -->
   <line x1="220" y1="180" x2="140" y2="60" stroke="#8c6239" stroke-width="2" stroke-dasharray="4,4"/>
   <!-- Кут 45° -->
-  <text x="180" y="165" font-family="'Libertinus Sans', sans-serif" font-size="12" font-weight="700" fill="#8c6239">{angle}°</text>
+  <text x="180" y="165" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" fill="#8c6239">{angle}°</text>
   <!-- Підписи вершин -->
-  <text x="65" y="195" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">A</text>
-  <text x="225" y="195" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">B</text>
-  <text x="290" y="145" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">C</text>
-  <text x="125" y="145" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
-  <text x="65" y="95" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">A₁</text>
-  <text x="225" y="95" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">B₁</text>
-  <text x="290" y="55" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">C₁</text>
-  <text x="125" y="55" font-family="'Libertinus Sans', serif" font-size="15" font-weight="700" fill="#4d301a">D₁</text>
+  <text x="65" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">A</text>
+  <text x="225" y="195" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">B</text>
+  <text x="290" y="145" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">C</text>
+  <text x="125" y="145" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">D</text>
+  <text x="65" y="95" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">A₁</text>
+  <text x="225" y="95" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">B₁</text>
+  <text x="290" y="55" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">C₁</text>
+  <text x="125" y="55" font-family="'Apple Garamond', 'EB Garamond', 'Garamond', serif" font-size="15" font-weight="700" fill="#4d301a">D₁</text>
   <!-- Розміри -->
-  <text x="145" y="195" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AB = {a}</text>
-  <text x="255" y="170" font-family="'Libertinus Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AD = {b}</text>
+  <text x="145" y="195" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AB = {a}</text>
+  <text x="255" y="170" font-family="'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="600" fill="#8c6239">AD = {b}</text>
 </svg>"""
