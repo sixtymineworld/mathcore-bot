@@ -19,7 +19,7 @@
   <!-- Шрифти: Onest / Plus Jakarta Sans / Taktika Sans (укр мова та цифри), EB Garamond / Apple Garamond (англійська латиниця) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Onest:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap">
 
-  <link rel="stylesheet" href="/app/css/style.css?v=2.8">
+  <link rel="stylesheet" href="/app/css/style.css?v=2.9">
 </head>
 <body>
   <div id="app" class="app-container">
@@ -39,6 +39,38 @@
       <section id="tab-topics" class="tab-content active">
         <!-- Список тем та вибір класу -->
         <div id="topics-view" class="view-section">
+          <!-- Hero Section: інтерактивне привітання та швидкий старт -->
+          <div class="hero-welcome-card" id="hero-welcome-card">
+            <div class="hero-content">
+              <div class="hero-pill">
+                <span class="hero-pill-dot"></span>
+                <span id="hero-greeting-time">привіт</span>,&nbsp;<span id="hero-user-name">учень</span>
+              </div>
+              <h2 class="hero-heading">розумна математика без нудьги</h2>
+              <p class="hero-subtext">
+                прокачуй навички з алгебри та геометрії, розв'язуй задачі формату нмт та отримуй миттєві аі-підказки.
+              </p>
+              <div class="hero-actions">
+                <button id="btn-hero-quick-start" class="btn-hero-cta">
+                  <span class="material-symbols-outlined cta-icon">play_arrow</span>
+                  <span>швидкий старт</span>
+                </button>
+                <div class="hero-tags">
+                  <span class="hero-tag">алгебра</span>
+                  <span class="hero-tag">геометрія</span>
+                  <span class="hero-tag">нмт 2026</span>
+                </div>
+              </div>
+            </div>
+            <!-- Декоративні математичні символи у фоні -->
+            <div class="hero-math-art" aria-hidden="true">
+              <span class="math-symbol sym-1">∫</span>
+              <span class="math-symbol sym-2">√x</span>
+              <span class="math-symbol sym-3">π</span>
+              <span class="math-symbol sym-4">△</span>
+            </div>
+          </div>
+
           <!-- Вибір класу (доступний лише у списку тем) -->
           <div class="grade-selector-container">
             <div class="section-label">клас:</div>

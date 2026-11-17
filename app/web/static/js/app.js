@@ -295,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const topics = await apiRequest(endpoint);
+      state.loadedTopics = topics;
       if (!topics || topics.length === 0) {
         topicsList.innerHTML = '<div class="loading-state">навчальні матеріали для цього розділу незабаром з\'являться</div>';
         return;
@@ -565,6 +566,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = profile.first_name || "учень";
       document.getElementById("profile-name").textContent = name;
       document.getElementById("badge-name").textContent = name;
+      const heroUserName = document.getElementById("hero-user-name");
+      if (heroUserName) heroUserName.textContent = name.toLowerCase();
       document.getElementById("profile-avatar").textContent = name.charAt(0).toLowerCase();
 
       const grade = profile.grade || 7;
@@ -601,9 +604,45 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#039;");
   }
 
+  function updateHeroGreeting() {
+    const hour = new Date().getHours();
+    let greeting = "привіт";
+    if (hour >= 5 && hour < 12) greeting = "доброго ранку";
+    else if (hour >= 12 && hour < 18) greeting = "гарного дня";
+    else if (hour >= 18 && hour < 23) greeting = "затишного вечора";
+
+    const greetingEl = document.getElementById("hero-greeting-time");
+    if (greetingEl) {
+      greetingEl.textContent = greeting;
+    }
+
+    const tgUser = tg?.initDataUnsafe?.user;
+    if (tgUser?.first_name) {
+      const heroUserName = document.getElementById("hero-user-name");
+      if (heroUserName) {
+        heroUserName.textContent = tgUser.first_name.toLowerCase();
+      }
+    }
+  }
+
+  // Кнопка швидкого старту в Hero Section
+  const btnHeroQuickStart = document.getElementById("btn-hero-quick-start");
+  if (btnHeroQuickStart) {
+    btnHeroQuickStart.addEventListener("click", async () => {
+      triggerHaptic("medium");
+      if (state.loadedTopics && state.loadedTopics.length > 0) {
+        const randomTopic = state.loadedTopics[Math.floor(Math.random() * state.loadedTopics.length)];
+        await openTopic(randomTopic);
+      } else {
+        document.getElementById("grade-chips-list")?.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+
   // ==========================================
   // Старт застосунку
   // ==========================================
+  updateHeroGreeting();
   renderGradeChips();
   loadProfile().then(() => {
     loadTopics(state.currentGrade);

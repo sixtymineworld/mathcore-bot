@@ -144,7 +144,7 @@ async def handle_subject_selection(callback: CallbackQuery, state: FSMContext) -
     sections_lines = []
     for sec, titles in sections.items():
         bullet_list = "\n  • ".join(titles)
-        sections_lines.append(f"📁 <b>{sec}:</b>\n  • {bullet_list}")
+        sections_lines.append(f"<b>{sec}:</b>\n  • {bullet_list}")
 
     sections_text = "\n\n".join(sections_lines)
 

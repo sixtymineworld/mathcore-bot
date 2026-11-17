@@ -116,7 +116,7 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
     )
 
     stars = format_difficulty(task.difficulty)
-    nmt_badge = " [формат нмт 📐]" if task.is_nmt else ""
+    nmt_badge = " [формат нмт]" if task.is_nmt else ""
     diagram_notice = (
         "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
         if task.diagram_svg
@@ -166,7 +166,7 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
     stars = format_difficulty(task.difficulty)
-    nmt_badge = " [формат нмт 📐]" if task.is_nmt else ""
+    nmt_badge = " [формат нмт]" if task.is_nmt else ""
     diagram_notice = (
         "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
         if task.diagram_svg
