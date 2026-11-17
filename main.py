@@ -89,6 +89,7 @@ async def main() -> None:
     dp.include_router(common_router)
     dp.include_router(tasks_router)
 
+    server = None
     try:
         # Пропуск накопичених оновлень та старт polling
         await bot.delete_webhook(drop_pending_updates=True)
@@ -119,7 +120,8 @@ async def main() -> None:
         await asyncio.gather(bot_task, server_task)
     finally:
         # Закриття клієнтської сесії бота
-        server.should_exit = True
+        if server:
+            server.should_exit = True
         await bot.session.close()
         logger.info("Сесію бота закрито.")
 
