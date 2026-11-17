@@ -484,11 +484,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (result.is_correct) {
         triggerHaptic("success");
         taskResultBox.className = "result-box correct";
-        resultStatus.textContent = "відповідь правильна!";
+        resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> відповідь правильна!`;
       } else {
         triggerHaptic("error");
         taskResultBox.className = "result-box incorrect";
-        resultStatus.textContent = "спробуй ще раз";
+        resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">refresh</span> спробуй ще раз`;
       }
 
       resultExplanation.textContent = "";
@@ -499,10 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (solution) {
         formatAndDisplayMath(taskSolutionText, solution);
         btnToggleSolution.classList.remove("hidden");
-        btnToggleSolution.innerHTML = `
-          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
-          показати покроковий розв'язок ↓
-        `;
+        btnToggleSolution.innerHTML = `<span class="material-symbols-outlined" style="font-size: 15px;">menu_book</span><span>покроковий розв'язок</span><span>↓</span>`;
         taskSolutionBox.classList.add("hidden");
       } else {
         btnToggleSolution.classList.add("hidden");
@@ -522,16 +519,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const isHidden = taskSolutionBox.classList.contains("hidden");
       if (isHidden) {
         taskSolutionBox.classList.remove("hidden");
-        btnToggleSolution.innerHTML = `
-          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
-          приховати розв'язок ↑
-        `;
+        btnToggleSolution.innerHTML = `<span class="material-symbols-outlined" style="font-size: 15px;">menu_book</span><span>приховати розв'язок</span><span>↑</span>`;
       } else {
         taskSolutionBox.classList.add("hidden");
-        btnToggleSolution.innerHTML = `
-          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
-          показати покроковий розв'язок ↓
-        `;
+        btnToggleSolution.innerHTML = `<span class="material-symbols-outlined" style="font-size: 15px;">menu_book</span><span>покроковий розв'язок</span><span>↓</span>`;
       }
     });
   }

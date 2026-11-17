@@ -19,7 +19,7 @@
   <!-- Шрифти: Onest / Plus Jakarta Sans / Taktika Sans (укр мова та цифри), EB Garamond / Apple Garamond (англійська латиниця) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Onest:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap">
 
-  <link rel="stylesheet" href="/app/css/style.css?v=2.5">
+  <link rel="stylesheet" href="/app/css/style.css?v=2.8">
 </head>
 <body>
   <div id="app" class="app-container">
@@ -95,7 +95,10 @@
 
             <!-- Блок підказки (прихований за замовчуванням) -->
             <div id="task-hint-box" class="hint-box hidden">
-              <div class="hint-title">підказка (формула):</div>
+              <div class="hint-title">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">lightbulb</span>
+                підказка (формула)
+              </div>
               <div id="task-hint-text" class="hint-text"></div>
             </div>
 
@@ -120,10 +123,14 @@
               <div id="result-explanation" class="result-explanation"></div>
               <button id="btn-toggle-solution" class="btn-solution-toggle hidden">
                 <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
-                показати покроковий розв'язок
+                <span>покроковий розв'язок</span>
+                <span>↓</span>
               </button>
               <div id="task-solution-box" class="solution-box hidden">
-                <div class="solution-title">покроковий хід міркувань:</div>
+                <div class="solution-title">
+                  <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">menu_book</span>
+                  покроковий хід міркувань:
+                </div>
                 <div id="task-solution-text" class="solution-text"></div>
               </div>
             </div>
