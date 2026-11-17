@@ -1,4 +1,4 @@
-from pydantic import Field, computed_field
+from pydantic import AliasChoices, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,14 +22,33 @@ class Settings(BaseSettings):
 
     # Налаштування Web API / Telegram Mini App
     WEB_HOST: str = Field(default="0.0.0.0", description="Хост для запуску FastAPI")
-    WEB_PORT: int = Field(default=8000, description="Порт для запуску FastAPI")
+    WEB_PORT: int = Field(default=8000, validation_alias=AliasChoices("PORT", "WEB_PORT"), description="Порт для запуску FastAPI")
     WEB_APP_URL: str = Field(default="", description="Публічний URL веб-додатку (TMA)")
     DEBUG: bool = Field(default=True, description="Режим налагодження (для тестування без Telegram)")
+
+    # Прямий рядок підключення до БД (Render, PostgreSQL, SQLite тощо)
+    CUSTOM_DATABASE_URL: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("DATABASE_URL", "DB_URL", "CUSTOM_DATABASE_URL"),
+        description="Прямий DSN для БД",
+    )
 
     @computed_field
     @property
     def DATABASE_URL(self) -> str:
-        """Асинхронний DSN для SQLAlchemy з драйвером asyncmy та кодуванням utf8mb4."""
+        """Асинхронний DSN для SQLAlchemy (підтримує MySQL, PostgreSQL, SQLite)."""
+        if self.CUSTOM_DATABASE_URL:
+            url = self.CUSTOM_DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgresql://") and "+asyncpg" not in url:
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif url.startswith("mysql://") and "+asyncmy" not in url:
+                url = url.replace("mysql://", "mysql+asyncmy://", 1)
+            elif url.startswith("sqlite://") and "+aiosqlite" not in url:
+                url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+            return url
+
         return (
             f"mysql+asyncmy://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"

@@ -19,12 +19,20 @@ class Base(DeclarativeBase):
     pass
 
 
-# Створення асинхронного рушія для MySQL через asyncmy
+# Налаштування параметрів підключення для різних типів баз даних
+_engine_kwargs = {
+    "echo": settings.DB_ECHO,
+}
+if "sqlite" in settings.DATABASE_URL:
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    _engine_kwargs["pool_pre_ping"] = True
+    _engine_kwargs["pool_recycle"] = 3600
+
+# Створення асинхронного рушія SQLAlchemy 2.0
 async_engine = create_async_engine(
     url=settings.DATABASE_URL,
-    echo=settings.DB_ECHO,
-    pool_pre_ping=True,
-    pool_recycle=3600,
+    **_engine_kwargs,
 )
 
 # Фабрика асинхронних сесій
