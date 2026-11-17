@@ -51,6 +51,8 @@ class Topic(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     grade: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    subject: Mapped[str] = mapped_column(String(64), default="математика", nullable=False)
+    section: Mapped[str] = mapped_column(String(255), default="загальний розділ", nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     order_num: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
@@ -87,6 +89,9 @@ class Task(Base):
     solution_hint: Mapped[str | None] = mapped_column(Text, nullable=True)
     correct_answer: Mapped[str] = mapped_column(String(255), nullable=False)
     difficulty: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    diagram_svg: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_nmt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    detailed_solution: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

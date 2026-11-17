@@ -16,22 +16,25 @@ async def get_grades() -> list[int]:
 @router.get("/grade/{grade}", response_model=list[TopicResponse], summary="Список тем для вказаного класу")
 async def get_topics_by_grade(
     grade: int,
+    subject: str | None = None,
     _user: AuthenticatedUser = Depends(get_current_user),
 ) -> list[TopicResponse]:
-    """Повертає теми з математики для вказаного класу (1–11)."""
+    """Повертає теми з математики для вказаного класу (1–11) з можливістю фільтрації за предметом (алгебра/геометрія)."""
     if grade < 1 or grade > 11:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Клас повинен бути в діапазоні від 1 до 11",
         )
 
-    topics = await TaskService.get_topics_by_grade(grade)
+    topics = await TaskService.get_topics_by_grade(grade, subject=subject)
     return [
         TopicResponse(
             id=topic.id,
             title=topic.title,
             description=topic.description,
             grade=topic.grade,
+            subject=topic.subject,
+            section=topic.section,
             order_num=topic.order_num,
         )
         for topic in topics
@@ -56,5 +59,7 @@ async def get_topic_by_id(
         title=topic.title,
         description=topic.description,
         grade=topic.grade,
+        subject=topic.subject,
+        section=topic.section,
         order_num=topic.order_num,
     )

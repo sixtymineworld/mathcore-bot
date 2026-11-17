@@ -170,44 +170,178 @@ body {
   font-weight: 800;
 }
 
-/* Topics */
-.topics-grid {
+/* Subject Switcher (Алгебра / Геометрія) */
+.subject-selector-container {
+  margin-bottom: 18px;
+}
+
+.subject-toggle-bar {
+  display: flex;
+  gap: 8px;
+  background: rgba(77, 48, 26, 0.06);
+  border: 1px solid var(--sand-deep);
+  border-radius: 14px;
+  padding: 4px;
+}
+
+.subject-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-color);
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subject-tab-btn:hover {
+  background: rgba(77, 48, 26, 0.05);
+}
+
+.subject-tab-btn.active {
+  background: var(--noir);
+  color: var(--sand);
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(77, 48, 26, 0.18);
+}
+
+.subject-tab-icon {
+  font-size: 17px !important;
+}
+
+/* Sections and Folders */
+.sections-folders-container {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.folder-section {
+  background: rgba(201, 168, 136, 0.18);
+  border: 1.5px solid var(--sand-deep);
+  border-radius: 18px;
+  padding: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.folder-section:hover {
+  border-color: var(--blush);
+  box-shadow: 0 4px 14px rgba(77, 48, 26, 0.05);
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(77, 48, 26, 0.15);
+  cursor: pointer;
+  user-select: none;
+}
+
+.folder-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folder-icon {
+  font-size: 20px !important;
+  color: var(--noir);
+}
+
+.folder-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-color);
+  text-transform: lowercase;
+  letter-spacing: 0.2px;
+}
+
+.folder-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--noir);
+  background: var(--sand-soft);
+  border: 1px solid var(--sand-deep);
+  border-radius: 999px;
+  padding: 2px 8px;
+  text-transform: lowercase;
+}
+
+.folder-topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .topic-card {
-  padding: 18px 2px;
-  border-bottom: 1px solid var(--line);
+  background: var(--sand-soft);
+  border: 1px solid var(--sand-deep);
+  border-radius: 12px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: padding-left 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.15s ease;
 }
 
-.topic-card:first-child {
-  border-top: 1px solid var(--line);
+.topic-card:hover {
+  background: #eedecf;
+  border-color: var(--blush);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(77, 48, 26, 0.08);
 }
 
 .topic-card:active {
+  transform: scale(0.99);
   background-color: var(--sand-deep);
-  padding-left: 10px;
+}
+
+.topic-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .topic-title {
   font-family: var(--font-serif);
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.35;
   color: var(--text-color);
   text-transform: lowercase;
 }
 
 .topic-desc {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--hint-color);
   margin-top: 4px;
   line-height: 1.45;
+}
+
+.topic-arrow {
+  font-size: 18px !important;
+  color: var(--blush);
+  transition: transform 0.15s ease;
+}
+
+.topic-card:hover .topic-arrow {
+  transform: translateX(3px);
+  color: var(--noir);
 }
 
 /* Task view */
@@ -256,6 +390,53 @@ body {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 18px;
+  gap: 10px;
+}
+
+.task-title-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.nmt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(201, 168, 136, 0.2);
+  color: var(--blush);
+  border: 1px solid rgba(201, 168, 136, 0.45);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: lowercase;
+}
+
+.nmt-icon {
+  font-size: 13px !important;
+  color: var(--blush);
+}
+
+/* Креслення / малюнок до задачі */
+.task-diagram {
+  width: 100%;
+  max-width: 420px;
+  margin: 4px auto 20px auto;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--sand-soft);
+  border: 1.5px solid var(--sand-deep);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.task-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .task-title {
@@ -338,6 +519,54 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* Бланк відповідей формату НМТ */
+.answer-sheet {
+  background: rgba(227, 201, 176, 0.08);
+  border: 1px dashed rgba(201, 168, 136, 0.4);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 4px;
+}
+
+.answer-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--blush);
+  font-size: 13px;
+}
+
+.answer-sheet-header .answer-icon {
+  font-size: 16px;
+  color: var(--blush);
+}
+
+.answer-sheet-title {
+  text-transform: lowercase;
+}
+
+.answer-sheet-sub {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sand);
+  opacity: 0.75;
+  margin-left: auto;
+}
+
+.answer-grid-input {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1.5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(201, 168, 136, 0.45);
 }
 
 .input-field {
@@ -470,6 +699,63 @@ body {
 
 .result-explanation b,
 .result-explanation strong {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--blush);
+}
+
+/* Кнопка та блок покрокового розв'язку */
+.btn-solution-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--blush);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 14px;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-transform: lowercase;
+  transition: opacity 0.2s ease;
+}
+
+.btn-solution-toggle:active {
+  opacity: 0.7;
+}
+
+.solution-box {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background-color: rgba(201, 168, 136, 0.12);
+  border-left: 2px solid var(--blush);
+  border-radius: 8px;
+}
+
+.solution-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--blush);
+  margin-bottom: 8px;
+  text-transform: lowercase;
+}
+
+.solution-text {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--sand);
+  white-space: pre-line;
+}
+
+.solution-text b,
+.solution-text strong {
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--blush);

@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Стан застосунку
   const state = {
     currentGrade: 7,
+    currentSubject: "алгебра",
     currentTopic: null,
     currentTask: null,
     profile: null,
@@ -182,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let g = 1; g <= 11; g++) {
       const chip = document.createElement("button");
       chip.className = `grade-chip ${g === state.currentGrade ? "active" : ""}`;
-      chip.textContent = `${g} клас`;
+      chip.textContent = g === 11 ? "11 клас (нмт)" : `${g} клас`;
       chip.addEventListener("click", () => {
         triggerHaptic("light");
         setGrade(g);
@@ -207,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     state.currentGrade = grade;
     renderGradeChips();
-    document.getElementById("badge-grade").textContent = `${grade} клас`;
+    document.getElementById("badge-grade").textContent = grade === 11 ? "11 клас (нмт)" : `${grade} клас`;
 
     // Оновлюємо клас на бекенді
     try {
@@ -219,39 +220,135 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("Could not sync grade to backend:", e);
     }
 
-    // Завантажуємо теми для цього класу
-    loadTopics(grade);
+    // Завантажуємо теми для цього класу з урахуванням предмету
+    loadTopics(grade, grade >= 7 ? state.currentSubject : null);
   }
 
   // ==========================================
-  // Завантаження тем
+  // Завантаження тем та розділів
   // ==========================================
   const topicsView = document.getElementById("topics-view");
   const taskView = document.getElementById("task-view");
   const topicsList = document.getElementById("topics-list");
+  const subjectSelectorContainer = document.getElementById("subject-selector-container");
+  const subjectBtnAlgebra = document.getElementById("subject-btn-algebra");
+  const subjectBtnGeometry = document.getElementById("subject-btn-geometry");
+  const topicsSectionLabel = document.getElementById("topics-section-label");
 
-  async function loadTopics(grade) {
+  if (subjectBtnAlgebra && subjectBtnGeometry) {
+    subjectBtnAlgebra.addEventListener("click", () => {
+      triggerHaptic("selection");
+      setSubject("алгебра");
+    });
+    subjectBtnGeometry.addEventListener("click", () => {
+      triggerHaptic("selection");
+      setSubject("геометрія");
+    });
+  }
+
+  function setSubject(subject) {
+    state.currentSubject = subject;
+    if (subject === "алгебра") {
+      subjectBtnAlgebra.classList.add("active");
+      subjectBtnGeometry.classList.remove("active");
+    } else {
+      subjectBtnGeometry.classList.add("active");
+      subjectBtnAlgebra.classList.remove("active");
+    }
+    loadTopics(state.currentGrade, state.currentSubject);
+  }
+
+  function getTopicsWord(count) {
+    if (count % 10 === 1 && count % 100 !== 11) return "тема";
+    if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return "теми";
+    return "тем";
+  }
+
+  async function loadTopics(grade, subject = null) {
     topicsList.innerHTML = '<div class="loading-state">завантаження тем...</div>';
+
+    // Для 7-11 класів відображаємо вибір предмету: алгебра чи геометрія
+    if (grade >= 7) {
+      subjectSelectorContainer.classList.remove("hidden");
+      const activeSubject = subject || state.currentSubject || "алгебра";
+      if (activeSubject === "алгебра") {
+        subjectBtnAlgebra.classList.add("active");
+        subjectBtnGeometry.classList.remove("active");
+      } else {
+        subjectBtnGeometry.classList.add("active");
+        subjectBtnAlgebra.classList.remove("active");
+      }
+      if (topicsSectionLabel) {
+        topicsSectionLabel.textContent = `розділи (${activeSubject}):`;
+      }
+    } else {
+      subjectSelectorContainer.classList.add("hidden");
+      if (topicsSectionLabel) {
+        topicsSectionLabel.textContent = "навчальні розділи:";
+      }
+    }
+
     try {
-      const topics = await apiRequest(`/topics/grade/${grade}`);
+      let endpoint = `/topics/grade/${grade}`;
+      if (grade >= 7 && subject) {
+        endpoint += `?subject=${encodeURIComponent(subject)}`;
+      }
+
+      const topics = await apiRequest(endpoint);
       if (!topics || topics.length === 0) {
-        topicsList.innerHTML = '<div class="loading-state">навчальні матеріали для цього класу незабаром з\'являться</div>';
+        topicsList.innerHTML = '<div class="loading-state">навчальні матеріали для цього розділу незабаром з\'являться</div>';
         return;
       }
 
-      topicsList.innerHTML = "";
+      // Групуємо теми за розділами (папками)
+      const sectionsMap = new Map();
       topics.forEach((topic) => {
-        const card = document.createElement("div");
-        card.className = "topic-card";
-        card.innerHTML = `
-          <div class="topic-title">${escapeHtml(topic.title)}</div>
-          <div class="topic-desc">${escapeHtml(topic.description || "натисни, щоб перейти до завдань")}</div>
+        const sec = topic.section || "загальний розділ";
+        if (!sectionsMap.has(sec)) {
+          sectionsMap.set(sec, []);
+        }
+        sectionsMap.get(sec).push(topic);
+      });
+
+      topicsList.innerHTML = "";
+
+      sectionsMap.forEach((secTopics, secTitle) => {
+        const folder = document.createElement("div");
+        folder.className = "folder-section";
+
+        const header = document.createElement("div");
+        header.className = "folder-header";
+        header.innerHTML = `
+          <div class="folder-title-wrap">
+            <span class="material-symbols-outlined folder-icon">folder_open</span>
+            <span class="folder-title">${escapeHtml(secTitle)}</span>
+          </div>
+          <span class="folder-count">${secTopics.length} ${getTopicsWord(secTopics.length)}</span>
         `;
-        card.addEventListener("click", () => {
-          triggerHaptic("medium");
-          openTopic(topic);
+
+        const topicsContainer = document.createElement("div");
+        topicsContainer.className = "folder-topics-list";
+
+        secTopics.forEach((topic) => {
+          const card = document.createElement("div");
+          card.className = "topic-card";
+          card.innerHTML = `
+            <div class="topic-card-header">
+              <div class="topic-title">${escapeHtml(topic.title)}</div>
+              <span class="material-symbols-outlined topic-arrow">arrow_forward</span>
+            </div>
+            <div class="topic-desc">${escapeHtml(topic.description || "натисніть, щоб розв'язувати завдання")}</div>
+          `;
+          card.addEventListener("click", () => {
+            triggerHaptic("medium");
+            openTopic(topic);
+          });
+          topicsContainer.appendChild(card);
         });
-        topicsList.appendChild(card);
+
+        folder.appendChild(header);
+        folder.appendChild(topicsContainer);
+        topicsList.appendChild(folder);
       });
     } catch (e) {
       topicsList.innerHTML = '<div class="loading-state">не вдалося завантажити теми</div>';
@@ -264,7 +361,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnBackToTopics = document.getElementById("btn-back-to-topics");
   const currentTopicTitle = document.getElementById("current-topic-title");
   const taskTitle = document.getElementById("task-title");
+  const taskNmtBadge = document.getElementById("task-nmt-badge");
   const taskDifficulty = document.getElementById("task-difficulty");
+  const taskDiagram = document.getElementById("task-diagram");
   const taskQuestion = document.getElementById("task-question");
   const taskHintBox = document.getElementById("task-hint-box");
   const taskHintText = document.getElementById("task-hint-text");
@@ -275,6 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const taskResultBox = document.getElementById("task-result-box");
   const resultStatus = document.getElementById("result-status");
   const resultExplanation = document.getElementById("result-explanation");
+  const btnToggleSolution = document.getElementById("btn-toggle-solution");
+  const taskSolutionBox = document.getElementById("task-solution-box");
+  const taskSolutionText = document.getElementById("task-solution-text");
 
   btnBackToTopics.addEventListener("click", () => {
     triggerHaptic("light");
@@ -311,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function generateNewTask(topicId) {
     resetTaskUI();
-    taskQuestion.innerHTML = "<i>генерація нової задачі за допомогою AI...</i>";
+    taskQuestion.innerHTML = "<i>генерація завдання у форматі нмт за допомогою AI...</i>";
     try {
       const res = await apiRequest(`/topics/${topicId}/generate`, {
         method: "POST",
@@ -326,6 +428,23 @@ document.addEventListener("DOMContentLoaded", () => {
     state.currentTask = task;
     taskTitle.textContent = task.title || "завдання";
     taskDifficulty.textContent = `${task.difficulty || 1}/3`;
+
+    // Відображення бейджа формату НМТ
+    if (task.is_nmt || (task.title && task.title.toLowerCase().includes("нмт"))) {
+      taskNmtBadge.classList.remove("hidden");
+    } else {
+      taskNmtBadge.classList.add("hidden");
+    }
+
+    // Відображення векторного малюнка / креслення
+    if (task.diagram_svg && task.diagram_svg.trim().startsWith("<svg")) {
+      taskDiagram.innerHTML = task.diagram_svg;
+      taskDiagram.classList.remove("hidden");
+    } else {
+      taskDiagram.innerHTML = "";
+      taskDiagram.classList.add("hidden");
+    }
+
     formatAndDisplayMath(taskQuestion, task.question_text);
   }
 
@@ -334,6 +453,12 @@ document.addEventListener("DOMContentLoaded", () => {
     taskHintBox.classList.add("hidden");
     taskResultBox.classList.add("hidden");
     taskResultBox.className = "result-box hidden";
+    taskDiagram.classList.add("hidden");
+    taskDiagram.innerHTML = "";
+    if (taskNmtBadge) taskNmtBadge.classList.add("hidden");
+    if (btnToggleSolution) btnToggleSolution.classList.add("hidden");
+    if (taskSolutionBox) taskSolutionBox.classList.add("hidden");
+    if (taskSolutionText) taskSolutionText.textContent = "";
   }
 
   // Кнопка перевірки відповіді
@@ -368,6 +493,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       resultExplanation.textContent = "";
       formatAndDisplayMath(resultExplanation, result.explanation);
+
+      // Відображаємо кнопку покрокового розв'язку
+      const solution = result.detailed_solution || state.currentTask.detailed_solution;
+      if (solution) {
+        formatAndDisplayMath(taskSolutionText, solution);
+        btnToggleSolution.classList.remove("hidden");
+        btnToggleSolution.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
+          показати покроковий розв'язок ↓
+        `;
+        taskSolutionBox.classList.add("hidden");
+      } else {
+        btnToggleSolution.classList.add("hidden");
+      }
     } catch (e) {
       alert("помилка перевірки відповіді");
     } finally {
@@ -375,6 +514,27 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSubmitAnswer.textContent = "перевірити розв'язок";
     }
   });
+
+  // Кнопка перемикання покрокового розв'язку
+  if (btnToggleSolution) {
+    btnToggleSolution.addEventListener("click", () => {
+      triggerHaptic("light");
+      const isHidden = taskSolutionBox.classList.contains("hidden");
+      if (isHidden) {
+        taskSolutionBox.classList.remove("hidden");
+        btnToggleSolution.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
+          приховати розв'язок ↑
+        `;
+      } else {
+        taskSolutionBox.classList.add("hidden");
+        btnToggleSolution.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size: 15px; vertical-align: middle;">menu_book</span>
+          показати покроковий розв'язок ↓
+        `;
+      }
+    });
+  }
 
   // Кнопка підказки
   btnGetHint.addEventListener("click", async () => {

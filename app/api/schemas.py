@@ -31,7 +31,10 @@ class TopicResponse(BaseModel):
     title: str
     description: str | None = None
     grade: int
+    subject: str = "математика"
+    section: str = "загальний розділ"
     order_num: int
+    tasks_count: int = 0
 
 
 class TaskResponse(BaseModel):
@@ -42,7 +45,10 @@ class TaskResponse(BaseModel):
     title: str
     question_text: str
     difficulty: int
+    diagram_svg: str | None = None
+    is_nmt: bool = False
     is_solved: bool = False
+    detailed_solution: str | None = None
 
 
 class CheckAnswerRequest(BaseModel):
@@ -57,6 +63,7 @@ class CheckAnswerResponse(BaseModel):
     is_correct: bool = Field(description="Чи є відповідь правильною")
     explanation: str = Field(description="Пояснення або коментар AI")
     user_answer: str = Field(description="Оригінальна відповідь учня")
+    detailed_solution: str | None = Field(default=None, description="Покроковий розв'язок задачі")
 
 
 class HintResponse(BaseModel):

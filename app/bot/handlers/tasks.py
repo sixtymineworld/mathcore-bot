@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.bot.keyboards.inline import (
+    get_subjects_keyboard,
     get_task_keyboard,
     get_task_navigation_keyboard,
     get_topics_keyboard,
@@ -25,7 +26,7 @@ def format_difficulty(level: int) -> str:
 
 @router.callback_query(F.data.startswith("topics_list:"))
 async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> None:
-    """Повернення до списку тем для вказаного класу."""
+    """Повернення до списку тем або предметів для вказаного класу."""
     if not callback.data or not callback.message:
         return
 
@@ -35,15 +36,24 @@ async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> N
         await callback.answer("помилка навігації.", show_alert=True)
         return
 
-    topics = await TaskService.get_topics_by_grade(grade)
     await state.set_state(UserState.viewing_topics)
     await callback.answer()
 
-    text = f"<b>навчальні теми для {grade} класу:</b>\nвибери тему для тренування:"
+    if grade >= 7:
+        text = (
+            f"<b>{grade} клас</b>\n\n"
+            "вибери предмет (алгебра або геометрія), щоб відкрити його розділи:"
+        )
+        reply_markup = get_subjects_keyboard(grade)
+    else:
+        topics = await TaskService.get_topics_by_grade(grade)
+        text = f"<b>навчальні розділи та теми для {grade} класу:</b>\nвибери тему для тренування:"
+        reply_markup = get_topics_keyboard(topics, grade)
+
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
             text=text,
-            reply_markup=get_topics_keyboard(topics, grade),
+            reply_markup=reply_markup,
         )
 
 
@@ -100,13 +110,23 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
         solution_hint=generated.hint,
         correct_answer=generated.correct_answer,
         difficulty=generated.difficulty,
+        diagram_svg=generated.diagram_svg,
+        is_nmt=generated.is_nmt,
+        detailed_solution=generated.detailed_solution,
     )
 
     stars = format_difficulty(task.difficulty)
+    nmt_badge = " [формат нмт 📐]" if task.is_nmt else ""
+    diagram_notice = (
+        "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
+        if task.diagram_svg
+        else ""
+    )
     text = (
         f"<b>тема:</b> {topic.title}\n"
-        f"<b>завдання:</b> {task.title} (складність: {stars})\n\n"
-        f"{task.question_text}\n\n"
+        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
+        f"{task.question_text}\n"
+        f"{diagram_notice}\n"
         "<i>вибирай дію нижче:</i>"
     )
 
@@ -117,6 +137,7 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
                 task_id=task.id,
                 topic_id=topic.id,
                 grade=topic.grade,
+                has_diagram=bool(task.diagram_svg),
             ),
         )
 
@@ -145,10 +166,17 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
     stars = format_difficulty(task.difficulty)
+    nmt_badge = " [формат нмт 📐]" if task.is_nmt else ""
+    diagram_notice = (
+        "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
+        if task.diagram_svg
+        else ""
+    )
     text = (
         f"<b>тема:</b> {topic_title}\n"
-        f"<b>завдання:</b> {task.title} (складність: {stars})\n\n"
-        f"{task.question_text}\n\n"
+        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
+        f"{task.question_text}\n"
+        f"{diagram_notice}\n"
         "<i>вибирай дію нижче:</i>"
     )
 
@@ -159,6 +187,7 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
                 task_id=task.id,
                 topic_id=task.topic_id,
                 grade=grade,
+                has_diagram=bool(task.diagram_svg),
             ),
         )
 

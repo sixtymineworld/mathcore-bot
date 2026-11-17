@@ -10,6 +10,7 @@ from app.bot.keyboards.inline import (
     get_grades_keyboard,
     get_profile_keyboard,
     get_stats_keyboard,
+    get_subjects_keyboard,
     get_topics_keyboard,
 )
 from app.bot.states.user_state import UserState
@@ -82,23 +83,31 @@ async def handle_grade_selection(callback: CallbackQuery, state: FSMContext) -> 
 
     await callback.answer(f"обрано {grade} клас")
 
-    # Завантаження тем для обраного класу
-    topics = await TaskService.get_topics_by_grade(grade)
-
-    if topics:
+    # Якщо клас 7-11, пропонуємо обрати предмет (алгебра або геометрія)
+    if grade >= 7:
         text = (
             f"<b>твій вибір: {grade} клас!</b>\n\n"
-            "ось доступні навчальні теми за шкільною програмою.\n"
-            "вибери тему, щоб розпочати тренування:"
+            "у 7–11 класах математика розділена на два предмети: <b>алгебру</b> та <b>геометрію</b>.\n"
+            "вибери предмет, щоб відкрити його розділи:"
         )
-        reply_markup = get_topics_keyboard(topics, grade)
+        reply_markup = get_subjects_keyboard(grade)
     else:
-        text = (
-            f"<b>твій вибір: {grade} клас!</b>\n\n"
-            "для цього класу навчальні матеріали якраз наповнюються.\n"
-            "ти можеш обрати інший клас за допомогою кнопки нижче:"
-        )
-        reply_markup = get_grades_keyboard()
+        # Завантаження тем для початкової та середньої школи (1-6 класи)
+        topics = await TaskService.get_topics_by_grade(grade)
+        if topics:
+            text = (
+                f"<b>твій вибір: {grade} клас!</b>\n\n"
+                "ось доступні навчальні розділи та теми за програмою.\n"
+                "вибери тему, щоб розпочати тренування:"
+            )
+            reply_markup = get_topics_keyboard(topics, grade)
+        else:
+            text = (
+                f"<b>твій вибір: {grade} клас!</b>\n\n"
+                "для цього класу навчальні матеріали якраз наповнюються.\n"
+                "ти можеш обрати інший клас за допомогою кнопки нижче:"
+            )
+            reply_markup = get_grades_keyboard()
 
     await state.set_state(UserState.viewing_topics)
 
@@ -106,6 +115,49 @@ async def handle_grade_selection(callback: CallbackQuery, state: FSMContext) -> 
         await callback.message.edit_text(
             text=text,
             reply_markup=reply_markup,
+        )
+
+
+@router.callback_query(F.data.startswith("subject:"))
+async def handle_subject_selection(callback: CallbackQuery, state: FSMContext) -> None:
+    """Обробник вибору предмета (алгебра або геометрія) для 7-11 класів."""
+    if not callback.data or not callback.message:
+        return
+
+    try:
+        parts = callback.data.split(":")
+        grade = int(parts[1])
+        subject = parts[2]
+    except (IndexError, ValueError):
+        await callback.answer("помилка вибору предмета.", show_alert=True)
+        return
+
+    topics = await TaskService.get_topics_by_grade(grade, subject=subject)
+    await state.set_state(UserState.viewing_topics)
+    await callback.answer(f"обрано: {subject}")
+
+    # Групуємо теми за розділами для охайного списку
+    sections: dict[str, list[str]] = {}
+    for t in topics:
+        sections.setdefault(t.section, []).append(t.title)
+
+    sections_lines = []
+    for sec, titles in sections.items():
+        bullet_list = "\n  • ".join(titles)
+        sections_lines.append(f"📁 <b>{sec}:</b>\n  • {bullet_list}")
+
+    sections_text = "\n\n".join(sections_lines)
+
+    text = (
+        f"<b>{grade} клас · {subject}</b>\n\n"
+        f"{sections_text}\n\n"
+        "вибери тему для тренування на кнопках нижче:"
+    )
+
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(
+            text=text,
+            reply_markup=get_topics_keyboard(topics, grade, subject=subject),
         )
 
 

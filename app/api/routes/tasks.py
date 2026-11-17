@@ -41,6 +41,9 @@ async def get_tasks_by_topic(
             title=task.title,
             question_text=task.question_text,
             difficulty=task.difficulty,
+            diagram_svg=task.diagram_svg,
+            is_nmt=task.is_nmt,
+            detailed_solution=task.detailed_solution,
         )
         for task in tasks
     ]
@@ -69,6 +72,9 @@ async def get_task_by_id(
         title=task.title,
         question_text=task.question_text,
         difficulty=task.difficulty,
+        diagram_svg=task.diagram_svg,
+        is_nmt=task.is_nmt,
+        detailed_solution=task.detailed_solution,
     )
 
 
@@ -134,6 +140,7 @@ async def check_task_solution(
         is_correct=result.is_correct,
         explanation=result.feedback,
         user_answer=payload.answer,
+        detailed_solution=result.detailed_solution or task.detailed_solution,
     )
 
 
@@ -167,6 +174,9 @@ async def generate_new_task(
         solution_hint=generated.hint,
         correct_answer=generated.correct_answer,
         difficulty=generated.difficulty,
+        diagram_svg=generated.diagram_svg,
+        is_nmt=generated.is_nmt,
+        detailed_solution=generated.detailed_solution,
     )
 
     return GenerateTaskResponse(
@@ -176,6 +186,9 @@ async def generate_new_task(
             title=created_task.title,
             question_text=created_task.question_text,
             difficulty=created_task.difficulty,
+            diagram_svg=created_task.diagram_svg,
+            is_nmt=created_task.is_nmt,
+            detailed_solution=created_task.detailed_solution,
         ),
         message=f"завдання згенеровано за темою '{topic.title}'",
     )

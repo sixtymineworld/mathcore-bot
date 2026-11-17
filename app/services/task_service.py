@@ -12,14 +12,13 @@ class TaskService:
     """Сервіс для роботи з навчальними темами, завданнями та профілями користувачів."""
 
     @staticmethod
-    async def get_topics_by_grade(grade: int) -> list[Topic]:
-        """Повертає список тем для вказаного класу, відсортованих за порядком."""
+    async def get_topics_by_grade(grade: int, subject: str | None = None) -> list[Topic]:
+        """Повертає список тем для вказаного класу (з можливим фільтром за предметом), відсортованих за порядком."""
         async with get_session() as session:
-            stmt = (
-                select(Topic)
-                .where(Topic.grade == grade)
-                .order_by(Topic.order_num, Topic.id)
-            )
+            stmt = select(Topic).where(Topic.grade == grade)
+            if subject:
+                stmt = stmt.where(Topic.subject == subject.strip().lower())
+            stmt = stmt.order_by(Topic.order_num, Topic.id)
             result = await session.execute(stmt)
             return list(result.scalars().all())
 
@@ -59,6 +58,9 @@ class TaskService:
         solution_hint: str,
         correct_answer: str,
         difficulty: int = 1,
+        diagram_svg: str | None = None,
+        is_nmt: bool = False,
+        detailed_solution: str | None = None,
     ) -> Task:
         """Створює та зберігає згенероване завдання в базі даних."""
         async with get_session() as session:
@@ -69,6 +71,9 @@ class TaskService:
                 solution_hint=solution_hint,
                 correct_answer=correct_answer,
                 difficulty=difficulty,
+                diagram_svg=diagram_svg,
+                is_nmt=is_nmt,
+                detailed_solution=detailed_solution,
             )
             session.add(task)
             await session.commit()

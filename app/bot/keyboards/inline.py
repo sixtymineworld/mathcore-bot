@@ -26,7 +26,35 @@ def get_grades_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMarkup:
+def get_subjects_keyboard(grade: int) -> InlineKeyboardMarkup:
+    """Генерує клавіатуру вибору предмета (алгебра / геометрія) для 7–11 класів."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="алгебра",
+        callback_data=f"subject:{grade}:алгебра",
+    )
+    builder.button(
+        text="геометрія",
+        callback_data=f"subject:{grade}:геометрія",
+    )
+    if settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити застосунок",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
+    builder.button(
+        text="змінити клас",
+        callback_data="change_grade",
+    )
+    builder.adjust(2, 1, 1)
+    return builder.as_markup()
+
+
+def get_topics_keyboard(
+    topics: list["Topic"],
+    grade: int,
+    subject: str | None = None,
+) -> InlineKeyboardMarkup:
     """Генерує клавіатуру списку тем для обраного класу."""
     builder = InlineKeyboardBuilder()
 
@@ -34,6 +62,14 @@ def get_topics_keyboard(topics: list["Topic"], grade: int) -> InlineKeyboardMark
         builder.button(
             text=topic.title,
             callback_data=f"topic:{topic.id}",
+        )
+
+    # Якщо 7–11 класи, додаємо кнопку перемикання на інший предмет
+    if grade >= 7 and subject:
+        other_subj = "геометрія" if subject == "алгебра" else "алгебра"
+        builder.button(
+            text=f"перейти до: {other_subj}",
+            callback_data=f"subject:{grade}:{other_subj}",
         )
 
     # Кнопки застосунку, профілю та зміни класу
@@ -81,9 +117,20 @@ def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
 get_stats_keyboard = get_profile_keyboard
 
 
-def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboardMarkup:
+def get_task_keyboard(
+    task_id: int,
+    topic_id: int,
+    grade: int,
+    has_diagram: bool = False,
+) -> InlineKeyboardMarkup:
     """Генерує кнопки дій для перегляду завдання."""
     builder = InlineKeyboardBuilder()
+
+    if has_diagram and settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити з малюнком у додатку",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
 
     builder.button(
         text="дати відповідь",
@@ -102,7 +149,10 @@ def get_task_keyboard(task_id: int, topic_id: int, grade: int) -> InlineKeyboard
         callback_data=f"topics_list:{grade}",
     )
 
-    builder.adjust(2, 1, 1)
+    if has_diagram and settings.WEB_APP_URL:
+        builder.adjust(1, 2, 1, 1)
+    else:
+        builder.adjust(2, 1, 1)
     return builder.as_markup()
 
 
