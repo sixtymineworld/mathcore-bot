@@ -1366,6 +1366,292 @@ body {
   text-transform: lowercase;
 }
 
+/* ==========================================================================
+   Адаптивний дизайн (Responsive Design) для телефонів, планшетів і десктопу
+   ========================================================================== */
+
+/* 1. Малі смартфони (iPhone SE, компактні Android, ширина до 400px) */
+@media (max-width: 400px) {
+  .app-header {
+    padding: 16px 14px 10px;
+  }
+
+  .logo-title {
+    font-size: 24px;
+  }
+
+  .user-badge {
+    font-size: 11.5px;
+    padding: 3px 8px;
+  }
+
+  .app-main {
+    padding: 6px 14px calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero-welcome-card {
+    padding: 16px 14px;
+    margin-bottom: 18px;
+    border-radius: 16px;
+  }
+
+  .hero-heading {
+    font-size: 19px;
+  }
+
+  .hero-subtext {
+    font-size: 12.5px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .btn-hero-cta {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .hero-tags {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .grade-chip {
+    padding: 6px 13px;
+    font-size: 12px;
+  }
+
+  .subject-toggle-bar {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .subject-tab-btn {
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+
+  .folder-section {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .folder-title {
+    font-size: 14.5px;
+  }
+
+  .topic-card {
+    padding: 12px 14px;
+  }
+
+  .topic-title {
+    font-size: 14px;
+  }
+
+  .topic-desc {
+    font-size: 12px;
+  }
+
+  .task-card {
+    padding: 20px 14px;
+    border-radius: 16px;
+  }
+
+  .task-question {
+    font-size: 15px;
+  }
+
+  .stats-grid {
+    gap: 6px;
+  }
+
+  .stat-card {
+    padding: 12px 4px;
+    border-radius: 10px;
+  }
+
+  .stat-value {
+    font-size: 19px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+  }
+
+  .bottom-nav {
+    height: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .nav-item {
+    padding: 4px 10px;
+  }
+
+  .nav-label {
+    font-size: 10.5px;
+  }
+}
+
+/* 2. Планшети (iPad, планшети Android, ширина 640px – 1023px) */
+@media (min-width: 640px) {
+  .app-container {
+    max-width: 760px;
+  }
+
+  .app-header {
+    padding: 24px 28px 16px;
+  }
+
+  .app-main {
+    padding: 10px 28px calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .logo-title {
+    font-size: 30px;
+  }
+
+  .user-badge {
+    font-size: 14px;
+    padding: 5px 14px;
+  }
+
+  .hero-welcome-card {
+    padding: 26px 26px;
+    border-radius: 24px;
+  }
+
+  .hero-heading {
+    font-size: 25px;
+  }
+
+  .hero-subtext {
+    font-size: 14.5px;
+    max-width: 560px;
+  }
+
+  /* Розділи на планшетах формують сітку з 2 колонок */
+  .folder-topics-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .topic-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .task-card {
+    padding: 30px 28px;
+    border-radius: 22px;
+  }
+
+  .task-question {
+    font-size: 17.5px;
+    line-height: 1.7;
+  }
+
+  .task-actions {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .task-actions .btn {
+    flex: 1;
+  }
+
+  .profile-hero {
+    gap: 22px;
+    margin-bottom: 32px;
+  }
+
+  .avatar-circle {
+    width: 72px;
+    height: 72px;
+    font-size: 34px;
+  }
+
+  .profile-name {
+    font-size: 32px;
+  }
+
+  .stats-grid {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 20px 12px;
+    border-radius: 16px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-title {
+    font-size: 12px;
+  }
+
+  /* Нижня панель навігації у вигляді плаваючої елегантної плашки по центру */
+  .bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 500px;
+    bottom: 14px;
+    border-radius: 24px;
+    height: 64px;
+    padding: 0 16px;
+    box-shadow: 0 10px 30px rgba(77, 48, 26, 0.28);
+    border: 1px solid rgba(201, 168, 136, 0.25);
+  }
+}
+
+/* 3. Десктоп та великі планшети (від 1024px) */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 880px;
+  }
+
+  .hero-welcome-card {
+    padding: 30px 32px;
+  }
+
+  .hero-heading {
+    font-size: 28px;
+  }
+
+  .folder-topics-list {
+    gap: 14px;
+  }
+
+  .task-card {
+    padding: 36px 36px;
+  }
+
+  .stats-grid {
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 24px 16px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .bottom-nav {
+    max-width: 560px;
+    bottom: 18px;
+    border-radius: 28px;
+    height: 66px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
