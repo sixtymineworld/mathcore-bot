@@ -15,15 +15,26 @@ async def seed_initial_data() -> None:
         stmt = select(func.count(Topic.id))
         count = (await session.execute(stmt)).scalar() or 0
 
-        # Якщо програма вже містить повний набір тем (>= 150), повторний сід не потрібен
-        if count >= len(INITIAL_CURRICULUM):
+        # Перевірка: чи завантажені вже оновлені педагогічні підказки (без готових відповідей)
+        sample_task = (
+            await session.execute(
+                select(Task).where(Task.title == "лічба предметів зліва і справа")
+            )
+        ).scalar_one_or_none()
+        needs_refresh = sample_task is not None and (
+            "4 + 3" in (sample_task.solution_hint or "")
+            or "відповідь" in (sample_task.solution_hint or "")
+        )
+
+        # Якщо програма вже містить повний набір тем з актуальними підказками, сід не потрібен
+        if count >= len(INITIAL_CURRICULUM) and not needs_refresh:
             logger.info("навчальну програму вже завантажено (%d тем).", count)
             return
 
-        # Якщо база містить застарілий мінімальний набір тем, оновлюємо до повної версії
+        # Якщо база містить застарілий набір або старі підказки, оновлюємо
         if count > 0:
             logger.info(
-                "оновлення програми: очищення застарілих тем (%d тем) перед імпортом повної програми...",
+                "оновлення програми: очищення застарілих матеріалів (%d тем) для імпорту якісних підказок...",
                 count,
             )
             await session.execute(delete(UserTaskAttempt))
@@ -65,6 +76,6 @@ async def seed_initial_data() -> None:
 
         await session.commit()
         logger.info(
-            "базу даних успішно наповнено повною програмою: %d тем та їх завдань!",
+            "базу даних успішно оновлено: %d тем із новими методичними підказками!",
             len(INITIAL_CURRICULUM),
         )
