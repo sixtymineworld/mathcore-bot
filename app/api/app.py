@@ -44,6 +44,15 @@ def create_app() -> FastAPI:
     # Підключення маршрутів API
     app.include_router(api_router, prefix="/api/v1")
 
+    @app.middleware("http")
+    async def add_no_cache_headers(request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/app"):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
     @app.get("/health", tags=["Система"], summary="Перевірка стану працездатності")
     async def health_check() -> dict:
         """Перевірка доступності сервісу."""

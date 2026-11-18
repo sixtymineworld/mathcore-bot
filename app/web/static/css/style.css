@@ -1280,7 +1280,7 @@ body {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 30;
+  z-index: 9999;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -1300,6 +1300,10 @@ body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   transition: opacity 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-item * {
+  pointer-events: none;
 }
 
 .nav-item:active {

@@ -18,11 +18,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Допоміжні функції Haptic Feedback для Telegram
   function triggerHaptic(type = "light") {
-    if (!tg?.HapticFeedback) return;
-    if (type === "success" || type === "error" || type === "warning") {
-      tg.HapticFeedback.notificationOccurred(type);
-    } else {
-      tg.HapticFeedback.impactOccurred(type);
+    try {
+      if (!tg?.HapticFeedback) return;
+      if (type === "success" || type === "error" || type === "warning") {
+        tg.HapticFeedback.notificationOccurred(type);
+      } else if (type === "selection") {
+        tg.HapticFeedback.selectionChanged();
+      } else {
+        tg.HapticFeedback.impactOccurred(type || "light");
+      }
+    } catch (e) {
+      console.warn("Haptic feedback error:", e);
     }
   }
 
@@ -193,10 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Вибір класу (grade chips)
   // ==========================================
   const gradeChipsList = document.getElementById("grade-chips-list");
-  let isDraggingChips = false;
 
   if (gradeChipsList) {
-    // Горизонтальний скрол коліщатком
+    // Горизонтальний скрол коліщатком миші для десктопу
     gradeChipsList.addEventListener(
       "wheel",
       (evt) => {
@@ -207,44 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       { passive: false }
     );
-
-    // Безпечний drag-to-scroll для миші без блокування кліків
-    let isMouseDown = false;
-    let startX = 0;
-    let scrollStart = 0;
-    let dragDistance = 0;
-
-    gradeChipsList.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      isMouseDown = true;
-      isDraggingChips = false;
-      dragDistance = 0;
-      startX = e.pageX - gradeChipsList.offsetLeft;
-      scrollStart = gradeChipsList.scrollLeft;
-    });
-
-    window.addEventListener("mouseup", () => {
-      if (isMouseDown) {
-        isMouseDown = false;
-        gradeChipsList.classList.remove("dragging");
-        setTimeout(() => {
-          isDraggingChips = false;
-        }, 50);
-      }
-    });
-
-    gradeChipsList.addEventListener("mousemove", (e) => {
-      if (!isMouseDown) return;
-      const x = e.pageX - gradeChipsList.offsetLeft;
-      dragDistance = Math.abs(x - startX);
-      if (dragDistance > 6) {
-        isDraggingChips = true;
-        gradeChipsList.classList.add("dragging");
-        e.preventDefault();
-        const walk = (x - startX) * 1.5;
-        gradeChipsList.scrollLeft = scrollStart - walk;
-      }
-    });
   }
 
   function renderGradeChips() {
@@ -256,9 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       chip.className = `grade-chip ${g === state.currentGrade ? "active" : ""}`;
       chip.textContent = g === 11 ? "11 клас (нмт)" : `${g} клас`;
 
-      chip.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (isDraggingChips) return;
+      chip.addEventListener("click", () => {
         triggerHaptic("light");
         setGrade(g);
       });
