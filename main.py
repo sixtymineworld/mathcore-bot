@@ -20,9 +20,8 @@ logger = logging.getLogger("mathcore")
 
 
 async def on_startup(bot: Bot) -> None:
-    """Хук запуску: ініціалізація бази даних та перевірка зв'язку з Telegram API."""
+    """Хук запуску: перевірка зв'язку з Telegram API та налаштування команд."""
     logger.info("Ініціалізація компонентів mathcore...")
-    await init_db()
 
     bot_info = await bot.get_me()
     logger.info(
@@ -91,6 +90,9 @@ async def main() -> None:
 
     server = None
     try:
+        # Ініціалізація бази даних перед стартом сервісів
+        await init_db()
+
         # Пропуск накопичених оновлень та старт polling
         await bot.delete_webhook(drop_pending_updates=True)
         logger.info("Початок отримання оновлень (polling)...")

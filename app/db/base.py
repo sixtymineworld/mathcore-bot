@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -57,16 +58,35 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
+_db_init_lock = asyncio.Lock()
+_db_initialized = False
+
+
 async def init_db() -> None:
     """Ініціалізація бази даних: створення таблиць та наповнення початковими даними."""
-    # Імпорт моделей для реєстрації метаданих у Base
-    import app.db.models  # noqa: F401
-    from app.db.seed import seed_initial_data
+    global _db_initialized
+    if _db_initialized:
+        return
 
-    logger.info("Ініціалізація таблиць бази даних...")
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Таблиці бази даних успішно перевірені/створені.")
+    async with _db_init_lock:
+        if _db_initialized:
+            return
 
-    # Заповнюємо початковими темами та задачами
-    await seed_initial_data()
+        # Імпорт моделей для реєстрації метаданих у Base
+        import app.db.models  # noqa: F401
+        from app.db.seed import seed_initial_data
+
+        logger.info("Ініціалізація таблиць бази даних...")
+        try:
+            async with async_engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Таблиці бази даних успішно перевірені/створені.")
+        except Exception as e:
+            if "already exists" in str(e).lower():
+                logger.info("Таблиці бази даних вже існують: %s", e)
+            else:
+                raise
+
+        # Заповнюємо початковими темами та задачами
+        await seed_initial_data()
+        _db_initialized = True
