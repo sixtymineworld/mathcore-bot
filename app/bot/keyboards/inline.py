@@ -34,6 +34,30 @@ def get_grades_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def get_home_keyboard(grade: int) -> InlineKeyboardMarkup:
+    """Генерує головне меню для поверненого користувача зі збереженою сесією."""
+    builder = InlineKeyboardBuilder()
+    if settings.WEB_APP_URL:
+        builder.button(
+            text="відкрити застосунок",
+            web_app=WebAppInfo(url=settings.WEB_APP_URL),
+        )
+    builder.button(
+        text=f"навчальні теми ({grade} клас)",
+        callback_data=f"topics_list:{grade}",
+    )
+    builder.button(
+        text="профіль та успішність",
+        callback_data="my_profile",
+    )
+    builder.button(
+        text="змінити клас",
+        callback_data="change_grade",
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
 def get_subjects_keyboard(grade: int) -> InlineKeyboardMarkup:
     """Генерує клавіатуру вибору предмета (алгебра / геометрія) для 7–11 класів."""
     builder = InlineKeyboardBuilder()

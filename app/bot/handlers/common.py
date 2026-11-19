@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, Message
 
 from app.bot.keyboards.inline import (
     get_grades_keyboard,
+    get_home_keyboard,
     get_profile_keyboard,
     get_stats_keyboard,
     get_subjects_keyboard,
@@ -25,12 +26,15 @@ router = Router(name="common")
 async def handle_start(message: Message, state: FSMContext) -> None:
     """Обробник команди /start.
 
-    Реєструє або оновлює користувача в базі даних та пропонує обрати клас.
+    Реєструє або оновлює користувача в базі даних та відновлює збережену сесію.
     """
     logger.info("Отримано команду /start від користувача: %s", message.from_user.id if message.from_user else "unknown")
     tg_user = message.from_user
     if not tg_user:
         return
+
+    # Перевірка наявності збереженої сесії користувача в базі даних
+    existing_user = await TaskService.get_user_by_tg_id(tg_user.id)
 
     # Збереження/оновлення користувача в базі даних через сервіс
     await TaskService.upsert_user(
@@ -40,6 +44,28 @@ async def handle_start(message: Message, state: FSMContext) -> None:
     )
 
     safe_name = html.escape(tg_user.first_name)
+
+    # Якщо користувач уже має збережений клас — відновлюємо сесію
+    if existing_user and existing_user.grade:
+        grade = existing_user.grade
+        profile = await TaskService.get_user_profile(tg_user.id)
+        solved = profile.get("solved_unique", 0)
+        rank = profile.get("rank", "дослідник")
+
+        welcome_text = (
+            f"з поверненням, <b>{safe_name}</b>!\n\n"
+            f"твоя сесія активна: <b>{grade} клас</b> · статус: <b>{rank}</b>.\n"
+            f"розв'язано завдань: <b>{solved}</b>.\n\n"
+            "продовжуй навчання, відкривай міні-застосунок або переходь до списку тем:"
+        )
+        await state.set_state(UserState.viewing_topics)
+        await message.answer(
+            text=welcome_text,
+            reply_markup=get_home_keyboard(grade),
+        )
+        return
+
+    # Новий користувач або клас ще не обрано
     welcome_text = (
         f"привіт, <b>{safe_name}</b>!\n\n"
         "вітаємо тебе в <b>mathcore</b> — твого інтерактивного "

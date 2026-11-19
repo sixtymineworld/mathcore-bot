@@ -5,7 +5,7 @@ import logging
 import urllib.parse
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, Query, status
+from fastapi import Cookie, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel
 
 from app.config import settings
@@ -20,6 +20,29 @@ class AuthenticatedUser(BaseModel):
     tg_id: int
     first_name: str
     username: str | None = None
+
+
+def create_session_token(tg_id: int) -> str:
+    """Генерує криптографічно підписаний токен сесії на базі BOT_TOKEN."""
+    secret = (settings.BOT_TOKEN or "mathcore-session-secret-key").encode("utf-8")
+    sig = hmac.new(secret, str(tg_id).encode("utf-8"), hashlib.sha256).hexdigest()[:32]
+    return f"{tg_id}:{sig}"
+
+
+def verify_session_token(token: str | None) -> int | None:
+    """Перевіряє підпис токена сесії та повертає tg_id користувача."""
+    if not token or ":" not in token:
+        return None
+    try:
+        tg_id_str, sig = token.split(":", 1)
+        tg_id = int(tg_id_str)
+        secret = (settings.BOT_TOKEN or "mathcore-session-secret-key").encode("utf-8")
+        expected_sig = hmac.new(secret, str(tg_id).encode("utf-8"), hashlib.sha256).hexdigest()[:32]
+        if hmac.compare_digest(sig, expected_sig):
+            return tg_id
+    except Exception as e:
+        logger.warning("Помилка перевірки токена сесії: %s", e)
+    return None
 
 
 def validate_telegram_init_data(init_data: str, bot_token: str) -> dict | None:
@@ -60,9 +83,12 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict | None:
 async def get_current_user(
     authorization: Annotated[str | None, Header(description="Заголовок 'tma <initData>'")] = None,
     init_data_query: Annotated[str | None, Query(alias="initData", description="initData як query param")] = None,
+    session_token_header: Annotated[str | None, Header(alias="X-Session-Token", description="Токен сесії")] = None,
+    session_cookie: Annotated[str | None, Cookie(alias="mathcore_session", description="Кукі сесії")] = None,
+    init_data_cookie: Annotated[str | None, Cookie(alias="mathcore_init_data", description="Кукі initData")] = None,
     dev_user_id: Annotated[int | None, Header(alias="X-Dev-User-Id", description="ID для розробки (тільки при DEBUG=True)")] = None,
 ) -> AuthenticatedUser:
-    """FastAPI Dependency для перевірки авторизації користувача Telegram Mini App."""
+    """FastAPI Dependency для перевірки авторизації користувача через Telegram WebApp, кукі або токен сесії."""
     init_data = None
     if authorization:
         if authorization.lower().startswith("tma "):
@@ -71,8 +97,10 @@ async def get_current_user(
             init_data = authorization.strip()
     elif init_data_query:
         init_data = init_data_query
+    elif init_data_cookie:
+        init_data = urllib.parse.unquote(init_data_cookie).strip()
 
-    # Перевірка Telegram initData
+    # 1. Перевірка свіжого рядка Telegram initData
     if init_data:
         validated_data = validate_telegram_init_data(init_data, settings.BOT_TOKEN)
         if validated_data and "user" in validated_data:
@@ -97,7 +125,21 @@ async def get_current_user(
             except Exception as e:
                 logger.error("Помилка розбору об'єкта user з initData: %s", e)
 
-    # Режим розробки / локального тестування через Swagger /docs
+    # 2. Перевірка підписаного токена сесії з Cookie або заголовка X-Session-Token
+    token_candidate = session_token_header or session_cookie
+    if token_candidate:
+        token_clean = urllib.parse.unquote(token_candidate).strip()
+        tg_id = verify_session_token(token_clean)
+        if tg_id:
+            user = await TaskService.get_user_by_tg_id(tg_id)
+            if user:
+                return AuthenticatedUser(
+                    tg_id=user.tg_id,
+                    first_name=user.first_name,
+                    username=user.username,
+                )
+
+    # 3. Режим розробки / локального тестування через Swagger /docs
     if settings.DEBUG:
         test_tg_id = dev_user_id or 99999999
         test_user = await TaskService.get_user_by_tg_id(test_tg_id)

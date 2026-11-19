@@ -32,13 +32,14 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Налаштування CORS для Telegram Mini App та локальної розробки
+    # Налаштування CORS для Telegram Mini App та збереження кукі сесій
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origin_regex=".*",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Session-Token"],
     )
 
     # Підключення маршрутів API

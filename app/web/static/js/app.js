@@ -4,12 +4,26 @@ document.addEventListener("DOMContentLoaded", () => {
   if (tg) {
     tg.ready();
     tg.expand();
+    // Зберігаємо Telegram initData у локальне сховище та кукі для надійного збереження сесії
+    if (tg.initData) {
+      try {
+        localStorage.setItem("mathcore_init_data", tg.initData);
+        sessionStorage.setItem("mathcore_init_data", tg.initData);
+        document.cookie = `mathcore_init_data=${encodeURIComponent(tg.initData)}; path=/; max-age=31536000; SameSite=None; Secure`;
+      } catch (e) {
+        console.warn("Storage write error:", e);
+      }
+    }
   }
 
-  // Стан застосунку
+  // Відновлення збереженого стану сесії з localStorage
+  const savedGrade = localStorage.getItem("mathcore_grade");
+  const savedSubject = localStorage.getItem("mathcore_subject");
+
+  // Стан застосунку зі збереженням вибору учня
   const state = {
-    currentGrade: 7,
-    currentSubject: "алгебра",
+    currentGrade: savedGrade ? parseInt(savedGrade, 10) : 7,
+    currentSubject: savedSubject || "алгебра",
     currentTopic: null,
     currentTask: null,
     profile: null,
@@ -32,13 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Обгортка для API-запитів з автоматичною передачею Telegram initData
+  // Обгортка для API-запитів з автоматичною передачею Telegram initData, токенів та кукі
   async function apiRequest(endpoint, options = {}) {
-    const initData = tg?.initData || "";
+    const initData =
+      tg?.initData ||
+      localStorage.getItem("mathcore_init_data") ||
+      sessionStorage.getItem("mathcore_init_data") ||
+      "";
+    const sessionToken = localStorage.getItem("mathcore_session_token") || "";
+
     const headers = {
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "true",
-      Authorization: `tma ${initData}`,
+      ...(initData ? { Authorization: `tma ${initData}` } : {}),
+      ...(sessionToken ? { "X-Session-Token": sessionToken } : {}),
       ...(options.headers || {}),
     };
 
@@ -46,7 +67,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(`/api/v1${endpoint}`, {
         ...options,
         headers,
+        credentials: "include", // Завжди передавати та зберігати кукі сесії
       });
+
+      // Збереження токена сесії з відповіді сервера
+      const newSessionToken = response.headers.get("X-Session-Token");
+      if (newSessionToken) {
+        localStorage.setItem("mathcore_session_token", newSessionToken);
+        try {
+          document.cookie = `mathcore_session=${encodeURIComponent(newSessionToken)}; path=/; max-age=31536000; SameSite=None; Secure`;
+        } catch (e) {}
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
@@ -247,6 +278,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     state.currentGrade = grade;
+    try {
+      localStorage.setItem("mathcore_grade", grade.toString());
+    } catch (e) {}
     renderGradeChips();
 
     const gradeText = grade === 11 ? "11 клас (нмт)" : `${grade} клас`;
@@ -289,6 +323,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function setSubject(subject) {
     triggerHaptic("selection");
     state.currentSubject = subject;
+    try {
+      localStorage.setItem("mathcore_subject", subject);
+    } catch (e) {}
 
     if (subject === "алгебра") {
       subjectBtnAlgebra?.classList.add("active");
@@ -685,10 +722,25 @@ document.addEventListener("DOMContentLoaded", () => {
         progressBarFill.style.width = `${Math.min(profile.accuracy ?? 0, 100)}%`;
       }
 
-      // Тільки при першому завантаженні застосунку виставляємо збережений клас
-      if (initial && profile.grade && profile.grade !== state.currentGrade) {
+      // Зберігаємо клас і дані користувача в локальне сховище
+      if (profile.grade) {
         state.currentGrade = profile.grade;
-        renderGradeChips();
+        try {
+          localStorage.setItem("mathcore_grade", profile.grade.toString());
+        } catch (e) {}
+        if (initial) {
+          renderGradeChips();
+        }
+      }
+      if (profile.first_name) {
+        try {
+          localStorage.setItem("mathcore_first_name", profile.first_name);
+        } catch (e) {}
+      }
+      if (profile.tg_id) {
+        try {
+          localStorage.setItem("mathcore_tg_id", profile.tg_id.toString());
+        } catch (e) {}
       }
     } catch (e) {
       console.warn("Could not load profile:", e);
@@ -718,10 +770,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const tgUser = tg?.initDataUnsafe?.user;
-    if (tgUser?.first_name) {
+    const storedName = localStorage.getItem("mathcore_first_name");
+    const firstName = tgUser?.first_name || storedName;
+    if (firstName) {
+      if (tgUser?.first_name) {
+        try {
+          localStorage.setItem("mathcore_first_name", tgUser.first_name);
+        } catch (e) {}
+      }
       const heroUserName = document.getElementById("hero-user-name");
       if (heroUserName) {
-        heroUserName.textContent = tgUser.first_name.toLowerCase();
+        heroUserName.textContent = firstName.toLowerCase();
       }
     }
   }
