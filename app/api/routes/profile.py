@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response
 
-from app.api.auth import AuthenticatedUser, create_session_token, get_current_user
+from app.api.auth import AuthenticatedUser, get_current_user, set_session_cookie
 from app.api.schemas import UpdateGradeRequest, UserProfileResponse
 from app.services.task_service import TaskService
 
@@ -12,35 +12,22 @@ async def get_my_profile(
     response: Response,
     user: AuthenticatedUser = Depends(get_current_user),
 ) -> UserProfileResponse:
-    """Повертає повну інформацію про успішність, ранг, активність та поточний клас учня і продовжує сесію в кукі."""
-    profile_data = await TaskService.get_user_profile(user.tg_id)
-
-    # Пролонгація сесії в cookie та заголовку X-Session-Token
-    session_token = create_session_token(user.tg_id)
-    response.set_cookie(
-        key="mathcore_session",
-        value=session_token,
-        max_age=31536000,  # 1 рік
-        path="/",
-        samesite="none",
-        secure=True,
-        httponly=False,
-    )
-    response.headers["X-Session-Token"] = session_token
-
+    """Повертає інформацію про успішність та активність учня і продовжує сесію в кукі."""
+    set_session_cookie(response, user.tg_id)
+    profile = await TaskService.get_user_profile(user.tg_id)
     return UserProfileResponse(
         tg_id=user.tg_id,
-        first_name=profile_data.get("first_name") or user.first_name,
-        grade=profile_data.get("grade"),
-        total_attempts=profile_data.get("total_attempts", 0),
-        solved_unique=profile_data.get("solved_unique", 0),
-        accuracy=profile_data.get("accuracy", 0),
-        today_attempts=profile_data.get("today_attempts", 0),
-        today_solved=profile_data.get("today_solved", 0),
-        streak=profile_data.get("streak", 0),
-        days_registered=profile_data.get("days_registered", 1),
-        rank=profile_data.get("rank", "початківець"),
-        progress_bar=profile_data.get("progress_bar", "[□□□□□□□□]"),
+        first_name=profile.get("first_name") or user.first_name,
+        grade=profile.get("grade"),
+        total_attempts=profile.get("total_attempts", 0),
+        solved_unique=profile.get("solved_unique", 0),
+        accuracy=profile.get("accuracy", 0),
+        today_attempts=profile.get("today_attempts", 0),
+        today_solved=profile.get("today_solved", 0),
+        streak=profile.get("streak", 0),
+        days_registered=profile.get("days_registered", 1),
+        rank=profile.get("rank", "початківець"),
+        progress_bar=profile.get("progress_bar", "[□□□□□□□□]"),
     )
 
 
@@ -66,22 +53,12 @@ async def sync_session(
     user: AuthenticatedUser = Depends(get_current_user),
 ) -> dict:
     """Створює довговічну сесію, встановлює кукі та повертає статус користувача."""
-    session_token = create_session_token(user.tg_id)
-    response.set_cookie(
-        key="mathcore_session",
-        value=session_token,
-        max_age=31536000,
-        path="/",
-        samesite="none",
-        secure=True,
-        httponly=False,
-    )
-    response.headers["X-Session-Token"] = session_token
-    profile_data = await TaskService.get_user_profile(user.tg_id)
+    token = set_session_cookie(response, user.tg_id)
+    profile = await TaskService.get_user_profile(user.tg_id)
     return {
         "ok": True,
         "tg_id": user.tg_id,
         "first_name": user.first_name,
-        "grade": profile_data.get("grade"),
-        "session_token": session_token,
+        "grade": profile.get("grade"),
+        "session_token": token,
     }

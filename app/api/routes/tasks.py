@@ -28,25 +28,9 @@ async def get_tasks_by_topic(
     """Повертає список математичних завдань для вказаної теми."""
     topic = await TaskService.get_topic_by_id(topic_id)
     if not topic:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Тему не знайдено",
-        )
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Тему не знайдено")
     tasks = await TaskService.get_tasks_by_topic(topic_id)
-    return [
-        TaskResponse(
-            id=task.id,
-            topic_id=task.topic_id,
-            title=task.title,
-            question_text=task.question_text,
-            difficulty=task.difficulty,
-            diagram_svg=task.diagram_svg,
-            is_nmt=task.is_nmt,
-            detailed_solution=task.detailed_solution,
-        )
-        for task in tasks
-    ]
+    return [TaskResponse.model_validate(t) for t in tasks]
 
 
 @router.get(
@@ -61,21 +45,8 @@ async def get_task_by_id(
     """Повертає математичне завдання за його ідентифікатором."""
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Завдання не знайдено",
-        )
-
-    return TaskResponse(
-        id=task.id,
-        topic_id=task.topic_id,
-        title=task.title,
-        question_text=task.question_text,
-        difficulty=task.difficulty,
-        diagram_svg=task.diagram_svg,
-        is_nmt=task.is_nmt,
-        detailed_solution=task.detailed_solution,
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Завдання не знайдено")
+    return TaskResponse.model_validate(task)
 
 
 @router.get(
@@ -87,14 +58,10 @@ async def get_task_hint(
     task_id: int,
     _user: AuthenticatedUser = Depends(get_current_user),
 ) -> HintResponse:
-    """Повертає загальну формулу або методичну підказку без спойлерів обчислень."""
+    """Повертає формулу або підказку без спойлерів обчислень."""
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Завдання не знайдено",
-        )
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Завдання не знайдено")
     hint = task.solution_hint or "спробуй пригадати базове правило або формулу для цієї теми."
     return HintResponse(task_id=task.id, hint=hint)
 
@@ -112,10 +79,7 @@ async def check_task_solution(
     """Перевіряє відповідь учня за допомогою Gemini AI та зберігає спробу в аналітику."""
     task = await TaskService.get_task_by_id(task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Завдання не знайдено",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Завдання не знайдено")
 
     topic = await TaskService.get_topic_by_id(task.topic_id)
     grade = topic.grade if topic else 7
@@ -128,7 +92,6 @@ async def check_task_solution(
         grade=grade,
     )
 
-    # Зберігаємо результат спроби в базу даних для аналітики успішності
     await TaskService.record_task_attempt(
         tg_id=user.tg_id,
         task_id=task.id,
@@ -156,16 +119,10 @@ async def generate_new_task(
     """Генерує за допомогою AI нове завдання суворо за темою та зберігає його в базу."""
     topic = await TaskService.get_topic_by_id(topic_id)
     if not topic:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Тему не знайдено",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Тему не знайдено")
 
     ai_checker = get_ai_checker()
-    generated = await ai_checker.generate_task(
-        grade=topic.grade,
-        topic=topic.title,
-    )
+    generated = await ai_checker.generate_task(grade=topic.grade, topic=topic.title)
 
     created_task = await TaskService.create_generated_task(
         topic_id=topic.id,
@@ -180,15 +137,6 @@ async def generate_new_task(
     )
 
     return GenerateTaskResponse(
-        task=TaskResponse(
-            id=created_task.id,
-            topic_id=created_task.topic_id,
-            title=created_task.title,
-            question_text=created_task.question_text,
-            difficulty=created_task.difficulty,
-            diagram_svg=created_task.diagram_svg,
-            is_nmt=created_task.is_nmt,
-            detailed_solution=created_task.detailed_solution,
-        ),
+        task=TaskResponse.model_validate(created_task),
         message=f"завдання згенеровано за темою '{topic.title}'",
     )

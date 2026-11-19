@@ -1,7 +1,7 @@
 import asyncio
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+import logging
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -20,23 +20,15 @@ class Base(DeclarativeBase):
     pass
 
 
-# Налаштування параметрів підключення для різних типів баз даних
-_engine_kwargs = {
-    "echo": settings.DB_ECHO,
-}
+_engine_kwargs = {"echo": settings.DB_ECHO}
 if "sqlite" in settings.DATABASE_URL:
     _engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
     _engine_kwargs["pool_pre_ping"] = True
     _engine_kwargs["pool_recycle"] = 3600
 
-# Створення асинхронного рушія SQLAlchemy 2.0
-async_engine = create_async_engine(
-    url=settings.DATABASE_URL,
-    **_engine_kwargs,
-)
+async_engine = create_async_engine(url=settings.DATABASE_URL, **_engine_kwargs)
 
-# Фабрика асинхронних сесій
 async_session_maker = async_sessionmaker(
     bind=async_engine,
     class_=AsyncSession,
@@ -72,21 +64,16 @@ async def init_db() -> None:
         if _db_initialized:
             return
 
-        # Імпорт моделей для реєстрації метаданих у Base
         import app.db.models  # noqa: F401
         from app.db.seed import seed_initial_data
 
-        logger.info("Ініціалізація таблиць бази даних...")
         try:
             async with async_engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
-            logger.info("Таблиці бази даних успішно перевірені/створені.")
+            logger.info("таблиці бази даних готові.")
         except Exception as e:
-            if "already exists" in str(e).lower():
-                logger.info("Таблиці бази даних вже існують: %s", e)
-            else:
+            if "already exists" not in str(e).lower():
                 raise
 
-        # Заповнюємо початковими темами та задачами
         await seed_initial_data()
         _db_initialized = True

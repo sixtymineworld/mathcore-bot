@@ -5,7 +5,7 @@ import logging
 import urllib.parse
 from typing import Annotated
 
-from fastapi import Cookie, Depends, Header, HTTPException, Query, status
+from fastapi import Cookie, Depends, Header, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
 from app.config import settings
@@ -27,6 +27,22 @@ def create_session_token(tg_id: int) -> str:
     secret = (settings.BOT_TOKEN or "mathcore-session-secret-key").encode("utf-8")
     sig = hmac.new(secret, str(tg_id).encode("utf-8"), hashlib.sha256).hexdigest()[:32]
     return f"{tg_id}:{sig}"
+
+
+def set_session_cookie(response: Response, tg_id: int) -> str:
+    """Генерує токен сесії, записує cookie на 1 рік та встановлює заголовок X-Session-Token."""
+    token = create_session_token(tg_id)
+    response.set_cookie(
+        key="mathcore_session",
+        value=token,
+        max_age=31536000,
+        path="/",
+        samesite="none",
+        secure=True,
+        httponly=False,
+    )
+    response.headers["X-Session-Token"] = token
+    return token
 
 
 def verify_session_token(token: str | None) -> int | None:

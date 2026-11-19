@@ -16,42 +16,28 @@ async def seed_initial_data() -> None:
         return
 
     async with get_session() as session:
-        stmt = select(func.count(Topic.id))
-        count = (await session.execute(stmt)).scalar() or 0
-
+        count = (await session.execute(select(func.count(Topic.id)))).scalar() or 0
         if count == len(curriculum):
             logger.info("навчальну програму з JSON вже синхронізовано (%d тем).", count)
             return
 
         if count > 0:
-            logger.info(
-                "оновлення структури навчальної програми (%d тем -> %d тем з JSON)...",
-                count,
-                len(curriculum),
-            )
+            logger.info("оновлення структури навчальної програми (%d -> %d тем)...", count, len(curriculum))
             await session.execute(delete(UserTaskAttempt))
             await session.execute(delete(Task))
             await session.execute(delete(Topic))
             await session.flush()
 
-        logger.info(
-            "імпорт структурованої програми з JSON (%d тем для 1–11 класів)...",
-            len(curriculum),
-        )
-
-        for topic_data in curriculum:
-            topic = Topic(
-                grade=topic_data["grade"],
-                subject=topic_data.get("subject", "математика"),
-                section=topic_data.get("section", "загальний розділ"),
-                title=topic_data["title"],
-                description=topic_data.get("description"),
-                order_num=topic_data["order_num"],
-            )
-            session.add(topic)
+        logger.info("імпорт структурованої програми (%d тем для 1–11 класів)...", len(curriculum))
+        for t in curriculum:
+            session.add(Topic(
+                grade=t["grade"],
+                subject=t.get("subject", "математика"),
+                section=t.get("section", "загальний розділ"),
+                title=t["title"],
+                description=t.get("description"),
+                order_num=t["order_num"],
+            ))
 
         await session.commit()
-        logger.info(
-            "базу даних успішно синхронізовано: %d тем (завдання генеруються виключно динамічно)!",
-            len(curriculum),
-        )
+        logger.info("базу даних успішно синхронізовано: %d тем!", len(curriculum))

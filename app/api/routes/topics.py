@@ -19,26 +19,14 @@ async def get_topics_by_grade(
     subject: str | None = None,
     _user: AuthenticatedUser = Depends(get_current_user),
 ) -> list[TopicResponse]:
-    """Повертає теми з математики для вказаного класу (1–11) з можливістю фільтрації за предметом (алгебра/геометрія)."""
-    if grade < 1 or grade > 11:
+    """Повертає теми з математики для вказаного класу (1–11) з можливістю фільтрації за предметом."""
+    if not 1 <= grade <= 11:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Клас повинен бути в діапазоні від 1 до 11",
         )
-
     topics = await TaskService.get_topics_by_grade(grade, subject=subject)
-    return [
-        TopicResponse(
-            id=topic.id,
-            title=topic.title,
-            description=topic.description,
-            grade=topic.grade,
-            subject=topic.subject,
-            section=topic.section,
-            order_num=topic.order_num,
-        )
-        for topic in topics
-    ]
+    return [TopicResponse.model_validate(t) for t in topics]
 
 
 @router.get("/{topic_id}", response_model=TopicResponse, summary="Отримати деталі теми")
@@ -53,13 +41,4 @@ async def get_topic_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Тему не знайдено",
         )
-
-    return TopicResponse(
-        id=topic.id,
-        title=topic.title,
-        description=topic.description,
-        grade=topic.grade,
-        subject=topic.subject,
-        section=topic.section,
-        order_num=topic.order_num,
-    )
+    return TopicResponse.model_validate(topic)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserProfileResponse(BaseModel):
@@ -27,6 +27,8 @@ class UpdateGradeRequest(BaseModel):
 class TopicResponse(BaseModel):
     """Схема навчальної теми."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     title: str
     description: str | None = None
@@ -39,6 +41,8 @@ class TopicResponse(BaseModel):
 
 class TaskResponse(BaseModel):
     """Схема математичного завдання для клієнта."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     topic_id: int

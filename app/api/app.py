@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import api_router
@@ -16,7 +17,7 @@ logger = logging.getLogger("mathcore.api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Життєвий цикл застосунку: ініціалізація бази даних при запуску."""
-    logger.info("Ініціалізація бази даних для FastAPI...")
+    logger.info("ініціалізація бази даних для fastapi...")
     await init_db()
     yield
 
@@ -32,7 +33,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Налаштування CORS для Telegram Mini App та збереження кукі сесій
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=".*",
@@ -42,7 +42,6 @@ def create_app() -> FastAPI:
         expose_headers=["X-Session-Token"],
     )
 
-    # Підключення маршрутів API
     app.include_router(api_router, prefix="/api/v1")
 
     @app.middleware("http")
@@ -56,20 +55,12 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["Система"], summary="Перевірка стану працездатності")
     async def health_check() -> dict:
-        """Перевірка доступності сервісу."""
-        return {
-            "status": "ok",
-            "service": "mathcore-api",
-            "debug": settings.DEBUG,
-        }
+        return {"status": "ok", "service": "mathcore-api", "debug": settings.DEBUG}
 
-    # Монтування статичних файлів фронтенду TMA (якщо каталог існує)
     static_dir = Path(__file__).resolve().parent.parent / "web" / "static"
     if static_dir.exists():
         app.mount("/app", StaticFiles(directory=str(static_dir), html=True), name="static_tma")
-        logger.info("Статичні файли TMA змонтовано на /app з каталогу: %s", static_dir)
-
-        from fastapi.responses import RedirectResponse
+        logger.info("статичні файли tma змонтовано на /app з %s", static_dir)
 
         @app.get("/", include_in_schema=False)
         async def root_redirect():
