@@ -22,7 +22,7 @@ def get_curriculum_hash() -> str:
 
 
 def load_curriculum() -> list[dict[str, Any]]:
-    """Завантажує всі теми та завдання з JSON-фікстур у каталозі data/curriculum/."""
+    """Завантажує всі теми з JSON-фікстур у каталозі data/curriculum/."""
     curriculum: list[dict[str, Any]] = []
 
     if not CURRICULUM_DIR.exists():

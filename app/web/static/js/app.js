@@ -460,18 +460,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadOrGenerateTask(topicId) {
     resetTaskUI();
-    if (taskQuestion) taskQuestion.innerHTML = "<i>завантажую завдання...</i>";
-
-    try {
-      const tasks = await apiRequest(`/topics/${topicId}/tasks`);
-      if (tasks && tasks.length > 0) {
-        displayTask(tasks[0]);
-      } else {
-        await generateNewTask(topicId);
-      }
-    } catch (e) {
-      if (taskQuestion) taskQuestion.textContent = "помилка завантаження завдання";
-    }
+    // Кожного разу генеруємо нове завдання за обраною темою
+    await generateNewTask(topicId);
   }
 
   async function generateNewTask(topicId) {

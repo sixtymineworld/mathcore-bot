@@ -19,24 +19,20 @@ async def seed_initial_data() -> None:
         stmt = select(func.count(Topic.id))
         count = (await session.execute(stmt)).scalar() or 0
 
-        # Якщо кількість тем відповідає JSON-файлам і зразок актуальний, сід не потрібен
-        sample_task = (
+        # Перевірка наявності застарілих статичних завдань з минулих релізів
+        has_legacy_static_tasks = (
             await session.execute(
-                select(Task).where(Task.title == "лічба предметів зліва і справа")
+                select(Task.id).where(Task.title == "лічба предметів зліва і справа").limit(1)
             )
-        ).scalar_one_or_none()
-        needs_refresh = sample_task is not None and (
-            "4 + 3" in (sample_task.solution_hint or "")
-            or "відповідь" in (sample_task.solution_hint or "")
-        )
+        ).scalar_one_or_none() is not None
 
-        if count == len(curriculum) and not needs_refresh:
+        if count == len(curriculum) and not has_legacy_static_tasks:
             logger.info("навчальну програму з JSON вже синхронізовано (%d тем).", count)
             return
 
-        if count > 0:
+        if count > 0 or has_legacy_static_tasks:
             logger.info(
-                "оновлення навчальної програми (%d тем -> %d тем з JSON)...",
+                "оновлення структури навчальної програми (%d тем -> %d тем з JSON)...",
                 count,
                 len(curriculum),
             )
@@ -51,7 +47,6 @@ async def seed_initial_data() -> None:
         )
 
         for topic_data in curriculum:
-            tasks_data = topic_data.get("tasks", [])
             topic = Topic(
                 grade=topic_data["grade"],
                 subject=topic_data.get("subject", "математика"),
@@ -61,24 +56,9 @@ async def seed_initial_data() -> None:
                 order_num=topic_data["order_num"],
             )
             session.add(topic)
-            await session.flush()
-
-            for task_data in tasks_data:
-                task = Task(
-                    topic_id=topic.id,
-                    title=task_data["title"],
-                    question_text=task_data["question_text"],
-                    solution_hint=task_data.get("solution_hint"),
-                    correct_answer=task_data["correct_answer"],
-                    difficulty=task_data.get("difficulty", 1),
-                    diagram_svg=task_data.get("diagram_svg"),
-                    is_nmt=task_data.get("is_nmt", False),
-                    detailed_solution=task_data.get("detailed_solution"),
-                )
-                session.add(task)
 
         await session.commit()
         logger.info(
-            "базу даних успішно синхронізовано з JSON: %d тем та їх завдань!",
+            "базу даних успішно синхронізовано: %d тем (завдання генеруються виключно динамічно)!",
             len(curriculum),
         )

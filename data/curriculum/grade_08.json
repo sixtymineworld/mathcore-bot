@@ -5,18 +5,7 @@
     "section": "раціональні вирази",
     "title": "раціональні дроби та допустимі значення змінних (ОДЗ)",
     "description": "область допустимих значень (знаменник не дорівнює нулю), тотожності.",
-    "order_num": 1,
-    "tasks": [
-      {
-        "title": "знаходження ОДЗ дробу",
-        "question_text": "при якому значенні x дріб <b>(x + 5) / (x - 8)</b> <b>не має змісту</b>?",
-        "solution_hint": "дріб не має змісту тоді і тільки тоді, коли його знаменник перетворюється на нуль (на нуль ділити не можна).",
-        "correct_answer": "8",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "знаменник дорівнює нулю при x = 8.\nвідповідь: 8."
-      }
-    ]
+    "order_num": 1
   },
   {
     "grade": 8,
@@ -24,18 +13,7 @@
     "section": "раціональні вирази",
     "title": "скорочення раціональних дробів",
     "description": "основна властивість дробу, розкладання чисельника і знаменника на множники.",
-    "order_num": 2,
-    "tasks": [
-      {
-        "title": "скорочення дробу",
-        "question_text": "скоротіть дріб <b>(x² - 25) / (x - 5)</b> та знайдіть його значення при <b>x = 12</b>.",
-        "solution_hint": "розкладіть чисельник за формулою різниці квадратів, скоротіть спільний двочлен (x - 5) зі знаменником, а потім підставте число x = 12.",
-        "correct_answer": "17",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "(x - 5)(x + 5) / (x - 5) = x + 5. при x = 12: 12 + 5 = 17.\nвідповідь: 17."
-      }
-    ]
+    "order_num": 2
   },
   {
     "grade": 8,
@@ -43,18 +21,7 @@
     "section": "раціональні вирази",
     "title": "степінь із цілим від'ємним показником",
     "description": "означення a^(-n) = 1/a^n, стандартний вигляд числа a · 10^k.",
-    "order_num": 3,
-    "tasks": [
-      {
-        "title": "обчислення виразу з від'ємним степенем",
-        "question_text": "обчисліть значення виразу: <b>2⁻³ · 32</b>.",
-        "solution_hint": "за означенням степеня з від'ємним показником a⁻ⁿ = 1 / aⁿ; перетворіть 2⁻³ у звичайний дріб або запишіть 32 як степінь двійки.",
-        "correct_answer": "4",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "(1/8) · 32 = 4.\nвідповідь: 4."
-      }
-    ]
+    "order_num": 3
   },
   {
     "grade": 8,
@@ -62,18 +29,7 @@
     "section": "раціональні вирази",
     "title": "обернена пропорційність та функція y = k/x",
     "description": "гіпербола, асимптоти, властивості залежно від знака коефіцієнта k.",
-    "order_num": 4,
-    "tasks": [
-      {
-        "title": "коефіцієнт оберненої пропорційності",
-        "question_text": "графік функції <b>y = k / x</b> проходить через точку <b>A(4; 3)</b>. знайдіть значення коефіцієнта <b>k</b>.",
-        "solution_hint": "підставте координати заданої точки (x = 4 та y = 3) у формулу оберненої пропорційності та виразіть коефіцієнт k через добуток координат.",
-        "correct_answer": "12",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "k = x · y = 4 · 3 = 12.\nвідповідь: 12."
-      }
-    ]
+    "order_num": 4
   },
   {
     "grade": 8,
@@ -81,18 +37,7 @@
     "section": "квадратні корені та дійсні числа",
     "title": "арифметичний квадратний корінь та його властивості",
     "description": "корінь з добутку, дробу та степеня, тотожність √(a²) = |a|.",
-    "order_num": 5,
-    "tasks": [
-      {
-        "title": "обчислення кореня з добутку",
-        "question_text": "обчисліть: <b>√(64 · 0.25)</b>.",
-        "solution_hint": "скористайтеся властивістю квадратного кореня з добутку: видобудьте окремо корінь з кожного множника та перемножте отримані результати.",
-        "correct_answer": "4",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "√64 · √0.25 = 8 · 0.5 = 4.\nвідповідь: 4."
-      }
-    ]
+    "order_num": 5
   },
   {
     "grade": 8,
@@ -100,18 +45,7 @@
     "section": "квадратні корені та дійсні числа",
     "title": "винесення та внесення множника під знак кореня",
     "description": "тотожні перетворення ірраціональних виразів.",
-    "order_num": 6,
-    "tasks": [
-      {
-        "title": "спрощення суми коренів",
-        "question_text": "спростіть вираз: <b>2√50 - √18</b> та подайте результат у вигляді <b>a√2</b>. чому дорівнює коефіцієнт <b>a</b>?",
-        "solution_hint": "подайте числа під коренями у вигляді добутку точного квадрата на 2 (50 = 25 · 2, 18 = 9 · 2), винесіть множники з-під знаків коренів та зведіть подібні члени.",
-        "correct_answer": "7",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "10√2 - 3√2 = 7√2. a = 7.\nвідповідь: 7."
-      }
-    ]
+    "order_num": 6
   },
   {
     "grade": 8,
@@ -119,18 +53,7 @@
     "section": "квадратні рівняння",
     "title": "неповні квадратні рівняння та їх розв'язування",
     "description": "види неповних квадратних рівнянь: ax² = 0, ax² + bx = 0, ax² + c = 0.",
-    "order_num": 7,
-    "tasks": [
-      {
-        "title": "неповне квадратне рівняння",
-        "question_text": "розв'яжіть рівняння: <b>4x² - 36 = 0</b>. введіть його <b>додатний корінь</b>.",
-        "solution_hint": "перенесіть число 36 праворуч, поділіть обидві частини на 4 для знаходження x², а потім обчисліть додатний квадратний корінь.",
-        "correct_answer": "3",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "x² = 9 => x = 3.\nвідповідь: 3."
-      }
-    ]
+    "order_num": 7
   },
   {
     "grade": 8,
@@ -138,18 +61,7 @@
     "section": "квадратні рівняння",
     "title": "дискримінант та формула коренів квадратного рівняння",
     "description": "D = b² - 4ac, формула коренів x = (-b ± √D) / (2a).",
-    "order_num": 8,
-    "tasks": [
-      {
-        "title": "знаходження більшого кореня квадратного рівняння",
-        "question_text": "розв'яжіть квадратне рівняння: <b>x² - 8x + 12 = 0</b>. введіть його <b>більший корінь</b>.",
-        "solution_hint": "обчисліть дискримінант за формулою D = b² - 4ac або скористайтеся теоремою вієта (підберіть два числа з сумою 8 та добутком 12); оберіть більше число серед коренів.",
-        "correct_answer": "6",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "x₁ = 2, x₂ = 6. більший корінь — 6.\nвідповідь: 6."
-      }
-    ]
+    "order_num": 8
   },
   {
     "grade": 8,
@@ -157,18 +69,7 @@
     "section": "квадратні рівняння",
     "title": "теорема Вієта та квадратний тричлен",
     "description": "зв'язок між коренями та коефіцієнтами: x₁ + x₂ = -p, x₁ · x₂ = q; розкладання ax² + bx + c = a(x - x₁)(x - x₂).",
-    "order_num": 9,
-    "tasks": [
-      {
-        "title": "застосування теореми Вієта",
-        "question_text": "корені квадратного рівняння <b>x² + px - 24 = 0</b> дорівнюють <b>x₁ = 8</b> та <b>x₂ = -3</b>. знайдіть значення коефіцієнта <b>p</b>.",
-        "solution_hint": "за теоремою вієта для зведеного квадратного рівняння x² + px + q = 0 сума коренів дорівнює другому коефіцієнту, взятому з протилежним знаком: x₁ + x₂ = -p.",
-        "correct_answer": "-5",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "x₁ + x₂ = 8 - 3 = 5 = -p => p = -5.\nвідповідь: -5."
-      }
-    ]
+    "order_num": 9
   },
   {
     "grade": 8,
@@ -176,18 +77,7 @@
     "section": "квадратні рівняння",
     "title": "біквадратні рівняння",
     "description": "ax⁴ + bx² + c = 0, заміна змінної t = x² (t ≥ 0).",
-    "order_num": 10,
-    "tasks": [
-      {
-        "title": "найбільший дійсний корінь біквадратного рівняння",
-        "question_text": "розв'яжіть біквадратне рівняння: <b>x⁴ - 10x² + 9 = 0</b>. знайдіть його <b>найбільший дійсний корінь</b>.",
-        "solution_hint": "введіть заміну змінної t = x² (де t ≥ 0), розв'яжіть квадратне рівняння відносно t, а потім знайдіть корені x = ±√t та оберіть найбільший.",
-        "correct_answer": "3",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "x² = 9 => x = 3 (найбільший корінь).\nвідповідь: 3."
-      }
-    ]
+    "order_num": 10
   },
   {
     "grade": 8,
@@ -195,18 +85,7 @@
     "section": "чотирикутники",
     "title": "паралелограм, його властивості та ознаки",
     "description": "рівність протилежних сторін і кутів, перетин діагоналей у їх середині.",
-    "order_num": 1,
-    "tasks": [
-      {
-        "title": "гострий кут паралелограма",
-        "question_text": "у паралелограмі сума двох протилежних кутів дорівнює <b>130°</b>. знайдіть градусну міру <b>гострого кута</b> паралелограма.",
-        "solution_hint": "протилежні кути будь-якого паралелограма рівні між собою; розділіть їхню суму навпіл, щоб знайти величину одного кута.",
-        "correct_answer": "65",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "130° : 2 = 65°.\nвідповідь: 65."
-      }
-    ]
+    "order_num": 1
   },
   {
     "grade": 8,
@@ -214,19 +93,7 @@
     "section": "чотирикутники",
     "title": "ромб і його властивості",
     "description": "перпендикулярність діагоналей ромба та їх властивість ділити кути навпіл.",
-    "order_num": 2,
-    "tasks": [
-      {
-        "title": "сторона ромба за діагоналями",
-        "question_text": "діагоналі ромба дорівнюють <b>12 см</b> і <b>16 см</b>. знайдіть довжину <b>сторони ромба</b> (у см).",
-        "solution_hint": "діагоналі ромба перетинаються під прямим кутом і діляться точкою перетину навпіл; розгляньте прямокутний трикутник з катетами d₁/2 і d₂/2 та застосуйте теорему піфагора для пошуку гіпотенузи (сторони ромба).",
-        "correct_answer": "10",
-        "difficulty": 1,
-        "is_nmt": false,
-        "diagram_svg": "<svg viewBox=\"0 0 380 230\" xmlns=\"http://www.w3.org/2000/svg\" class=\"math-diagram-svg\">\n  <rect x=\"8\" y=\"8\" width=\"364\" height=\"214\" rx=\"12\" fill=\"#ebd6c1\" stroke=\"#d6b99d\" stroke-width=\"1.5\"/>\n  <!-- Ромб -->\n  <polygon points=\"190,40 310,115 190,190 70,115\" fill=\"rgba(201, 168, 136, 0.16)\" stroke=\"#4d301a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/>\n  <!-- Діагоналі -->\n  <line x1=\"70\" y1=\"115\" x2=\"310\" y2=\"115\" stroke=\"#4d301a\" stroke-width=\"1.8\" stroke-dasharray=\"4,4\"/>\n  <line x1=\"190\" y1=\"40\" x2=\"190\" y2=\"190\" stroke=\"#4d301a\" stroke-width=\"1.8\" stroke-dasharray=\"4,4\"/>\n  <!-- Прямий кут у центрі O -->\n  <rect x=\"190\" y=\"103\" width=\"12\" height=\"12\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <!-- Вершини -->\n  <text x=\"185\" y=\"30\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">B</text>\n  <text x=\"320\" y=\"120\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">C</text>\n  <text x=\"185\" y=\"208\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">D</text>\n  <text x=\"50\" y=\"120\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">A</text>\n  <text x=\"195\" y=\"110\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"14\" font-weight=\"700\" fill=\"#8c6239\">O</text>\n  <!-- Розміри діагоналей -->\n  <text x=\"105\" y=\"105\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">AC = 12</text>\n  <text x=\"198\" y=\"75\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">BD = 16</text>\n  <!-- Точки -->\n  <circle cx=\"190\" cy=\"40\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"310\" cy=\"115\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"190\" cy=\"190\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"70\" cy=\"115\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"190\" cy=\"115\" r=\"3\" fill=\"#8c6239\"/>\n</svg>",
-        "detailed_solution": "a = √(6² + 8²) = 10 см.\nвідповідь: 10."
-      }
-    ]
+    "order_num": 2
   },
   {
     "grade": 8,
@@ -234,18 +101,7 @@
     "section": "чотирикутники",
     "title": "трапеція та середня лінія трапеції",
     "description": "види трапецій, властивість середньої лінії: l = (a + b) / 2.",
-    "order_num": 3,
-    "tasks": [
-      {
-        "title": "довжина середньої лінії трапеції",
-        "question_text": "основи трапеції дорівнюють <b>8 см</b> і <b>14 см</b>. знайдіть довжину її <b>середньої лінії</b> (у см).",
-        "solution_hint": "довжина середньої лінії трапеції дорівнює півсумі довжин двох її основ: m = (a + b) / 2.",
-        "correct_answer": "11",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "m = (8 + 14) / 2 = 11 см.\nвідповідь: 11."
-      }
-    ]
+    "order_num": 3
   },
   {
     "grade": 8,
@@ -253,18 +109,7 @@
     "section": "чотирикутники",
     "title": "вписані та центральні кути",
     "description": "теорема про величину вписаного кута: вписаний кут дорівнює половині центрального.",
-    "order_num": 4,
-    "tasks": [
-      {
-        "title": "знаходження вписаного кута",
-        "question_text": "центральний кут спирається на дугу кола і дорівнює <b>86°</b>. знайдіть градусну міру <b>вписаного кута</b>, що спирається на ту саму дугу.",
-        "solution_hint": "за теоремою про вписаний кут, його градусна міра дорівнює половині відповідного центрального кута, що спирається на ту саму дугу.",
-        "correct_answer": "43",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "86° : 2 = 43°.\nвідповідь: 43."
-      }
-    ]
+    "order_num": 4
   },
   {
     "grade": 8,
@@ -272,18 +117,7 @@
     "section": "подібність трикутників",
     "title": "ознаки подібності трикутників",
     "description": "ознаки за двома кутами, двома пропорційними сторонами і кутом, трьома сторонами; відношення площ як k².",
-    "order_num": 5,
-    "tasks": [
-      {
-        "title": "коефіцієнт подібності",
-        "question_text": "сторони одного трикутника дорівнюють <b>3 см, 5 см, 7 см</b>, а подібного йому трикутника найдовша сторона дорівнює <b>21 см</b>. знайдіть довжину <b>найменшої сторони</b> подібного трикутника (у см).",
-        "solution_hint": "знайдіть коефіцієнт подібності k як відношення найбільших відповідних сторін двох трикутників, а потім помножте найменшу сторону на цей коефіцієнт.",
-        "correct_answer": "9",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "k = 21 / 7 = 3; a' = 3 · 3 = 9 см.\nвідповідь: 9."
-      }
-    ]
+    "order_num": 5
   },
   {
     "grade": 8,
@@ -291,19 +125,7 @@
     "section": "подібність трикутників",
     "title": "середні пропорційні відрізки у прямокутному трикутнику",
     "description": "висота прямокутного трикутника h² = a_c · b_c.",
-    "order_num": 6,
-    "tasks": [
-      {
-        "title": "висота на гіпотенузу",
-        "question_text": "висота CD прямокутного трикутника ABC ділить гіпотенузу AB на відрізки AD = <b>9 см</b> і DB = <b>16 см</b>. знайдіть довжину висоти <b>CD</b> (у см).",
-        "solution_hint": "скористайтеся метричним співвідношенням: висота прямокутного трикутника, опущена на гіпотенузу, є середнім геометричним (пропорційним) проекцій катетів на гіпотенузу: CD = √(AD · DB).",
-        "correct_answer": "12",
-        "difficulty": 1,
-        "is_nmt": false,
-        "diagram_svg": "<svg viewBox=\"0 0 380 230\" xmlns=\"http://www.w3.org/2000/svg\" class=\"math-diagram-svg\">\n  <rect x=\"8\" y=\"8\" width=\"364\" height=\"214\" rx=\"12\" fill=\"#ebd6c1\" stroke=\"#d6b99d\" stroke-width=\"1.5\"/>\n  <!-- Трикутник ABC -->\n  <polygon points=\"40,180 150,55 330,180\" fill=\"rgba(201, 168, 136, 0.16)\" stroke=\"#4d301a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/>\n  <!-- Висота CD -->\n  <line x1=\"150\" y1=\"55\" x2=\"150\" y2=\"180\" stroke=\"#4d301a\" stroke-width=\"1.8\" stroke-dasharray=\"4,4\"/>\n  <!-- Прямий кут у точці D -->\n  <rect x=\"150\" y=\"166\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <!-- Прямий кут у точці C (повернутий) -->\n  <path d=\"M 141,66 L 150,74 L 159,64\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <!-- Вершини -->\n  <text x=\"22\" y=\"195\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">A</text>\n  <text x=\"145\" y=\"42\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">C</text>\n  <text x=\"338\" y=\"195\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">B</text>\n  <text x=\"145\" y=\"198\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"15\" font-weight=\"700\" fill=\"#4d301a\">D</text>\n  <!-- Розміри проекцій -->\n  <text x=\"85\" y=\"198\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">AD = 9</text>\n  <text x=\"225\" y=\"198\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">DB = 16</text>\n  <!-- Точки -->\n  <circle cx=\"40\" cy=\"180\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"150\" cy=\"55\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"330\" cy=\"180\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"150\" cy=\"180\" r=\"3\" fill=\"#4d301a\"/>\n</svg>",
-        "detailed_solution": "CD = √(9 · 16) = 12 см.\nвідповідь: 12."
-      }
-    ]
+    "order_num": 6
   },
   {
     "grade": 8,
@@ -311,18 +133,7 @@
     "section": "метричні співвідношення та теорема Піфагора",
     "title": "теорема Піфагора та єгипетський трикутник",
     "description": "квадрат гіпотенузи дорівнює сумі квадратів катетів: c² = a² + b².",
-    "order_num": 7,
-    "tasks": [
-      {
-        "title": "знаходження гіпотенузи",
-        "question_text": "у прямокутному трикутнику катети дорівнюють <b>6 см</b> і <b>8 см</b>. знайдіть довжину <b>гіпотенузи</b> (у см).",
-        "solution_hint": "за теоремою піфагора квадрат гіпотенузи дорівнює сумі квадратів обох катетів: c = √(a² + b²).",
-        "correct_answer": "10",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "c = √(36 + 64) = 10 см.\nвідповідь: 10."
-      }
-    ]
+    "order_num": 7
   },
   {
     "grade": 8,
@@ -330,18 +141,7 @@
     "section": "метричні співвідношення та теорема Піфагора",
     "title": "синус, косинус і тангенс гострого кута прямокутного трикутника",
     "description": "тригонометричні співвідношення: sin α = a/c, cos α = b/c, tg α = a/b.",
-    "order_num": 8,
-    "tasks": [
-      {
-        "title": "тангенс гострого кута",
-        "question_text": "у прямокутному трикутнику протилежний до кута α катет дорівнює <b>3 см</b>, а прилеглий катет — <b>4 см</b>. знайдіть <b>tg α</b> (у вигляді десяткового дробу).",
-        "solution_hint": "за означенням, тангенс гострого кута прямокутного трикутника дорівнює відношенню протилежного катета до прилеглого катета.",
-        "correct_answer": "0.75",
-        "difficulty": 1,
-        "is_nmt": false,
-        "detailed_solution": "tg α = 3 / 4 = 0.75.\nвідповідь: 0.75."
-      }
-    ]
+    "order_num": 8
   },
   {
     "grade": 8,
@@ -349,18 +149,6 @@
     "section": "площі многокутників",
     "title": "площа прямокутної трапеції",
     "description": "обчислення площі трапеції через основи та висоту: S = ((a + b) / 2) · h.",
-    "order_num": 9,
-    "tasks": [
-      {
-        "title": "площа трапеції",
-        "question_text": "основи трапеції дорівнюють <b>7 см</b> і <b>13 см</b>, а її висота — <b>6 см</b>. знайдіть <b>площу трапеції</b> (у см²).",
-        "solution_hint": "площа трапеції обчислюється як добуток півсуми її основ на висоту: S = ((a + b) / 2) · h.",
-        "correct_answer": "60",
-        "difficulty": 1,
-        "is_nmt": false,
-        "diagram_svg": "<svg viewBox=\"0 0 380 230\" xmlns=\"http://www.w3.org/2000/svg\" class=\"math-diagram-svg\">\n  <rect x=\"8\" y=\"8\" width=\"364\" height=\"214\" rx=\"12\" fill=\"#ebd6c1\" stroke=\"#d6b99d\" stroke-width=\"1.5\"/>\n  <!-- Трапеція -->\n  <polygon points=\"50,180 50,65 170,65 310,180\" fill=\"rgba(201, 168, 136, 0.16)\" stroke=\"#4d301a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/>\n  <!-- Висота CH -->\n  <line x1=\"170\" y1=\"65\" x2=\"170\" y2=\"180\" stroke=\"#4d301a\" stroke-width=\"1.8\" stroke-dasharray=\"4,4\"/>\n  <!-- Символи прямого кута -->\n  <rect x=\"50\" y=\"166\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <rect x=\"50\" y=\"65\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <rect x=\"156\" y=\"166\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"#4d301a\" stroke-width=\"1.5\"/>\n  <!-- Дуга кута D -->\n  <path d=\"M 285,180 A 25 25 0 0 0 293,166\" fill=\"none\" stroke=\"#c9a888\" stroke-width=\"2\"/>\n  <text x=\"270\" y=\"172\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"12\" font-weight=\"700\" fill=\"#4d301a\">60°</text>\n  <!-- Вершини -->\n  <text x=\"30\" y=\"195\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">A</text>\n  <text x=\"30\" y=\"60\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">B</text>\n  <text x=\"170\" y=\"52\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">C</text>\n  <text x=\"320\" y=\"195\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"16\" font-weight=\"700\" fill=\"#4d301a\">D</text>\n  <text x=\"165\" y=\"198\" font-family=\"'Apple Garamond', 'EB Garamond', 'Garamond', serif\" font-size=\"15\" font-weight=\"700\" fill=\"#4d301a\">H</text>\n  <!-- Розміри -->\n  <text x=\"105\" y=\"58\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">BC = 7</text>\n  <text x=\"250\" y=\"115\" font-family=\"'Taktika Sans', 'Onest', 'Plus Jakarta Sans', sans-serif\" font-size=\"13\" font-weight=\"600\" fill=\"#8c6239\">CD = 10</text>\n  <!-- Точки вершин -->\n  <circle cx=\"50\" cy=\"180\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"50\" cy=\"65\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"170\" cy=\"65\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"310\" cy=\"180\" r=\"3.5\" fill=\"#4d301a\"/>\n  <circle cx=\"170\" cy=\"180\" r=\"3\" fill=\"#4d301a\"/>\n</svg>",
-        "detailed_solution": "S = ((7 + 13) / 2) · 6 = 60 см².\nвідповідь: 60."
-      }
-    ]
+    "order_num": 9
   }
 ]

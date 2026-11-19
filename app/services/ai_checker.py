@@ -438,7 +438,7 @@ class MockAIChecker(BaseAIChecker):
             )
 
         # 11. Лінійні рівняння (7 клас)
-        if "рівнян" in top_lower and "квадрат" not in top_lower:
+        if "рівнян" in top_lower and "порівнян" not in top_lower and "квадрат" not in top_lower and grade >= 6:
             x = random.randint(2, 12)
             a = random.randint(2, 6)
             b = random.randint(1, 25)
@@ -453,7 +453,145 @@ class MockAIChecker(BaseAIChecker):
                 difficulty=1,
             )
 
-        # 12. Базовий генератор для арифметики та інших тем
+        # 12. Шкільна арифметика для молодших і середніх класів
+        if grade == 1:
+            if "порівнян" in top_lower:
+                n1 = random.randint(1, 9)
+                n2 = random.randint(1, 9)
+                while n2 == n1:
+                    n2 = random.randint(1, 9)
+                ans = max(n1, n2)
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="порівняння чисел",
+                    question=f"яке число більше: <b>{n1}</b> чи <b>{n2}</b>? (введіть більше число).",
+                    hint="порівняй два числа на числовому промені: більше те, яке стоїть правіше.",
+                    correct_answer=str(ans),
+                    difficulty=1,
+                    detailed_solution=f"число {ans} є більшим за інше число.\nвідповідь: {ans}.",
+                )
+            if "фігур" in top_lower or "трикутн" in top_lower or "прямокутн" in top_lower:
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="геометричні фігури",
+                    question="скільки сторін має геометрична фігура <b>трикутник</b>?",
+                    hint="згадай назву фігури: вона має стільки ж сторін, скільки й кутів.",
+                    correct_answer="3",
+                    difficulty=1,
+                    detailed_solution="трикутник має 3 сторони та 3 вершини.\nвідповідь: 3.",
+                )
+            n1 = random.randint(1, 7)
+            n2 = random.randint(1, 10 - n1)
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="додавання у межах 10",
+                question=f"обчисліть значення суми:\n\n<b>{n1} + {n2} = ?</b>",
+                hint="об'єднай обидва доданки разом на числовому промені.",
+                correct_answer=str(n1 + n2),
+                difficulty=1,
+                detailed_solution=f"додаємо числа: {n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
+            )
+
+        if grade == 2:
+            n1 = random.randint(12, 65)
+            n2 = random.randint(5, 30)
+            if random.random() < 0.5:
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="додавання в межах 100",
+                    question=f"обчисліть значення виразу:\n\n<b>{n1} + {n2} = ?</b>",
+                    hint="додай десятки до десятків, а одиниці до одиниць.",
+                    correct_answer=str(n1 + n2),
+                    difficulty=1,
+                    detailed_solution=f"1. {n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
+                )
+            top_n = n1 + n2
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="віднімання в межах 100",
+                question=f"обчисліть значення виразу:\n\n<b>{top_n} - {n2} = ?</b>",
+                hint="відніми від зменшуваного від'ємник порозрядно.",
+                correct_answer=str(n1),
+                difficulty=1,
+                detailed_solution=f"1. {top_n} - {n2} = {n1}.\nвідповідь: {n1}.",
+            )
+
+        if grade == 3:
+            f1 = random.randint(2, 9)
+            f2 = random.randint(2, 9)
+            prod = f1 * f2
+            if "ділен" in top_lower:
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="табличне ділення",
+                    question=f"обчисліть значення частки:\n\n<b>{prod} : {f1} = ?</b>",
+                    hint="згадай таблицю множення: яке число при множенні на дільник дає ділене.",
+                    correct_answer=str(f2),
+                    difficulty=1,
+                    detailed_solution=f"оскільки {f1} · {f2} = {prod}, то {prod} : {f1} = {f2}.\nвідповідь: {f2}.",
+                )
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="табличне множення",
+                question=f"обчисліть значення добутку:\n\n<b>{f1} · {f2} = ?</b>",
+                hint="пригадай відповідний рядок таблиці множення.",
+                correct_answer=str(prod),
+                difficulty=1,
+                detailed_solution=f"множимо числа: {f1} · {f2} = {prod}.\nвідповідь: {prod}.",
+            )
+
+        if grade == 4:
+            a = random.randint(15, 80)
+            b = random.randint(4, 9)
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="множення багатоцифрових чисел",
+                question=f"обчисліть добуток:\n\n<b>{a} · {b} = ?</b>",
+                hint="розклади двоцифрове число на десятки та одиниці й помнож кожну частину окремо.",
+                correct_answer=str(a * b),
+                difficulty=1,
+                detailed_solution=f"1. {a} · {b} = {a * b}.\nвідповідь: {a * b}.",
+            )
+
+        if grade in (5, 6):
+            if "відсот" in top_lower:
+                pct = random.choice([10, 20, 25, 50])
+                base = random.choice([80, 120, 200, 300, 400])
+                ans = int(base * pct / 100)
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="знаходження відсотка від числа",
+                    question=f"знайдіть <b>{pct}%</b> від числа <b>{base}</b>.",
+                    hint="щоб знайти відсоток від числа, перетвори відсотки у десятковий дріб та помнож на дане число.",
+                    correct_answer=str(ans),
+                    difficulty=1,
+                    detailed_solution=f"1. {pct}% = {pct/100:.2g}.\n2. {base} · {pct/100:.2g} = {ans}.\nвідповідь: {ans}.",
+                )
+            if "дріб" in top_lower:
+                denom = random.choice([5, 7, 9, 11, 13])
+                num1 = random.randint(1, denom - 2)
+                num2 = random.randint(1, denom - num1)
+                return GeneratedTask(
+                    grade=grade,
+                    topic=topic,
+                    title="додавання звичайних дробів",
+                    question=f"обчисліть суму дробів з однаковими знаменниками:\n\n<b>{num1}/{denom} + {num2}/{denom} = ?</b>\n(у відповідь запишіть тільки чисельник отриманого дробу)",
+                    hint="при додаванні дробів з однаковими знаменниками знаменник залишають без змін, а чисельники додають.",
+                    correct_answer=str(num1 + num2),
+                    difficulty=1,
+                    detailed_solution=f"додаємо чисельники: {num1} + {num2} = {num1 + num2}, знаменник {denom}.\nчисельник дорівнює: {num1 + num2}.\nвідповідь: {num1 + num2}.",
+                )
+
+        # 13. Базовий генератор для арифметики та інших тем
         v1 = random.randint(100, 400)
         v2 = random.randint(50, 300)
         v3 = random.randint(20, 90)
