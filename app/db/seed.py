@@ -2,20 +2,24 @@ import logging
 from sqlalchemy import delete, func, select
 
 from app.db.base import get_session
-from app.db.curriculum import INITIAL_CURRICULUM
+from app.db.curriculum.loader import load_curriculum
 from app.db.models import Task, Topic, UserTaskAttempt
 
 logger = logging.getLogger(__name__)
 
 
 async def seed_initial_data() -> None:
-    """Заповнює або оновлює навчальну програму за підручниками О. С. Істера (1–11 класи)."""
+    """Заповнює або синхронізує навчальну програму з JSON-фікстур (data/curriculum/)."""
+    curriculum = load_curriculum()
+    if not curriculum:
+        logger.warning("навчальна програма порожня, перевірте файли в data/curriculum/")
+        return
+
     async with get_session() as session:
-        # Перевірка кількості наявних тем
         stmt = select(func.count(Topic.id))
         count = (await session.execute(stmt)).scalar() or 0
 
-        # Перевірка: чи завантажені вже оновлені педагогічні підказки (без готових відповідей)
+        # Якщо кількість тем відповідає JSON-файлам і зразок актуальний, сід не потрібен
         sample_task = (
             await session.execute(
                 select(Task).where(Task.title == "лічба предметів зліва і справа")
@@ -26,16 +30,15 @@ async def seed_initial_data() -> None:
             or "відповідь" in (sample_task.solution_hint or "")
         )
 
-        # Якщо програма вже містить повний набір тем з актуальними підказками, сід не потрібен
-        if count >= len(INITIAL_CURRICULUM) and not needs_refresh:
-            logger.info("навчальну програму вже завантажено (%d тем).", count)
+        if count == len(curriculum) and not needs_refresh:
+            logger.info("навчальну програму з JSON вже синхронізовано (%d тем).", count)
             return
 
-        # Якщо база містить застарілий набір або старі підказки, оновлюємо
         if count > 0:
             logger.info(
-                "оновлення програми: очищення застарілих матеріалів (%d тем) для імпорту якісних підказок...",
+                "оновлення навчальної програми (%d тем -> %d тем з JSON)...",
                 count,
+                len(curriculum),
             )
             await session.execute(delete(UserTaskAttempt))
             await session.execute(delete(Task))
@@ -43,11 +46,11 @@ async def seed_initial_data() -> None:
             await session.flush()
 
         logger.info(
-            "синхронізація повної структурованої програми О. С. Істера (%d тем для 1–11 класів)...",
-            len(INITIAL_CURRICULUM),
+            "імпорт структурованої програми з JSON (%d тем для 1–11 класів)...",
+            len(curriculum),
         )
 
-        for topic_data in INITIAL_CURRICULUM:
+        for topic_data in curriculum:
             tasks_data = topic_data.get("tasks", [])
             topic = Topic(
                 grade=topic_data["grade"],
@@ -76,6 +79,6 @@ async def seed_initial_data() -> None:
 
         await session.commit()
         logger.info(
-            "базу даних успішно оновлено: %d тем із новими методичними підказками!",
-            len(INITIAL_CURRICULUM),
+            "базу даних успішно синхронізовано з JSON: %d тем та їх завдань!",
+            len(curriculum),
         )
