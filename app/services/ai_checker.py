@@ -155,455 +155,329 @@ class MockAIChecker(BaseAIChecker):
         grade: int,
         topic: str,
     ) -> GeneratedTask:
-        """Процедурна генерація завдань, включаючи повноцінні задачі формату НМТ з рисунками."""
-        top_lower = topic.lower()
+        """Процедурна генерація завдань за програмою О. Істера та геометрії з рисунками."""
+        geom_task = _generate_geometry_task(grade, topic)
+        if geom_task:
+            return geom_task
+        return _generate_school_task(grade, topic)
 
-        # --- 1. НМТ: Планіметрія (трапеція, висота трикутника, коло та дотичні) ---
-        if (
-            "планіметрія" in top_lower
-            or "трапец" in top_lower
-            or "дотичн" in top_lower
-            or ("трикутн" in top_lower and grade >= 9)
-        ):
-            sub = random.choice(["трапеція", "трикутник_висота", "дотичні"])
-            if "трапец" in top_lower:
-                sub = "трапеція"
-            elif "висот" in top_lower or "трикутн" in top_lower:
-                sub = "трикутник_висота"
-            elif "дотичн" in top_lower or "коло" in top_lower:
-                sub = "дотичні"
 
-            if sub == "трапеція":
-                bc = random.choice([6, 7, 8, 9])
-                cd = 10
-                angle = 60
-                ad = bc + 5  # cd * cos(60) = 5
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="прямокутна трапеція та основа",
-                    question=(
-                        f"на рисунку зображено прямокутну трапецію <b>ABCD</b> (AD ∥ BC, ∠A = 90°).\n"
-                        f"з вершини кута C опущено висоту <b>CH</b> на більшу основу AD.\n"
-                        f"відомо, що менша основа <b>BC = {bc}</b>, похила бічна сторона <b>CD = {cd}</b>, "
-                        f"а гострий кут <b>∠D = {angle}°</b>.\n\n"
-                        "знайдіть довжину більшої основи <b>AD</b>."
-                    ),
-                    hint=(
-                        "використай властивості прямокутного трикутника CHD: "
-                        "катет HD = CD · cos(∠D). чотирикутник ABCH є прямокутником, "
-                        "тому AH = BC. більша основа AD = AH + HD."
-                    ),
-                    correct_answer=str(ad),
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_right_trapezoid(bc=bc, cd=cd, angle_d=angle),
-                    detailed_solution=(
-                        f"1. чотирикутник ABCH є прямокутником, отже AH = BC = {bc}.\n"
-                        f"2. у трикутнику CHD: HD = CD · cos(60°) = {cd} · 0.5 = 5.\n"
-                        f"3. основа AD = AH + HD = {bc} + 5 = {ad}.\n"
-                        f"відповідь: {ad}."
-                    ),
-                )
-            elif sub == "трикутник_висота":
-                pairs = [(9, 16, 12), (4, 9, 6), (16, 25, 20), (1, 16, 4)]
-                ad_val, db_val, cd_val = random.choice(pairs)
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="висота прямокутного трикутника",
-                    question=(
-                        "на рисунку зображено прямокутний трикутник <b>ABC</b> (∠C = 90°).\n"
-                        "з вершини прямого кута до гіпотенузи AB проведено висоту <b>CD</b>.\n"
-                        f"проекція катета AC на гіпотенузу дорівнює <b>AD = {ad_val}</b>, "
-                        f"а проекція катета BC дорівнює <b>DB = {db_val}</b>.\n\n"
-                        "знайдіть довжину висоти <b>CD</b>."
-                    ),
-                    hint="метричне співвідношення у прямокутному трикутнику: квадрат висоти дорівнює добутку проекцій катетів CD² = AD · DB.",
-                    correct_answer=str(cd_val),
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_right_triangle_altitude(ad=ad_val, db=db_val, cd=cd_val),
-                    detailed_solution=(
-                        f"1. за метричними співвідношеннями: CD² = AD · DB = {ad_val} · {db_val} = {ad_val * db_val}.\n"
-                        f"2. отже, CD = √{ad_val * db_val} = {cd_val}.\n"
-                        f"відповідь: {cd_val}."
-                    ),
-                )
-            else:
-                r_val = random.choice([6, 8, 10, 12])
-                dist_val = 2 * r_val
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="дотичні до кола з однієї точки",
-                    question=(
-                        "на рисунку зображено коло з центром у точці <b>O</b>.\n"
-                        "з точки <b>M</b>, що лежить поза колом, проведено дві дотичні <b>MA</b> і <b>MB</b> (A і B — точки дотику).\n"
-                        f"кут між дотичними <b>∠AMB = 60°</b>, а радіус кола <b>r = {r_val}</b>.\n\n"
-                        "знайдіть відстань від точки M до центра кола O (довжину відрізка <b>MO</b>)."
-                    ),
-                    hint="відрізок MO є бісектрисою кута між дотичними (∠AMO = 30°). у прямокутному трикутнику MAO радіус OA = MO / 2.",
-                    correct_answer=str(dist_val),
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_circle_tangents(r=r_val, angle_m=60, dist=dist_val),
-                    detailed_solution=(
-                        f"1. відрізок MO ділить кут навпіл: ∠AMO = 60° / 2 = 30°.\n"
-                        f"2. у прямокутному трикутнику MAO катет OA лежить проти кута 30°:\n"
-                        f"   OA = MO / 2  ⟹  MO = 2 · OA = 2 · {r_val} = {dist_val}.\n"
-                        f"відповідь: {dist_val}."
-                    ),
-                )
+def _generate_geometry_task(grade: int, topic: str) -> GeneratedTask | None:
+    """Генерація задач з геометрії та векторної графіки SVG."""
+    top_lower = topic.lower()
 
-        # --- 2. НМТ: Стереометрія (піраміда, циліндр, паралелепіпед) ---
-        if (
-            "стереометрія" in top_lower
-            or "пірамід" in top_lower
-            or "циліндр" in top_lower
-            or "паралелепіпед" in top_lower
-            or "призм" in top_lower
-        ):
-            sub = random.choice(["піраміда", "циліндр", "паралелепіпед"])
-            if "пірамід" in top_lower:
-                sub = "піраміда"
-            elif "циліндр" in top_lower:
-                sub = "циліндр"
-            elif "паралелепіпед" in top_lower or "призм" in top_lower:
-                sub = "паралелепіпед"
-
-            if sub == "піраміда":
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="правильна чотирикутна піраміда",
-                    question=(
-                        "на рисунку зображено правильну чотирикутну піраміду <b>SABCD</b>.\n"
-                        "сторона основи піраміди <b>AB = 12</b>, а висота <b>SO = 8</b>.\n"
-                        "відрізок <b>SK</b> — апофема піраміди.\n\n"
-                        "обчисліть площу повної поверхні цієї піраміди <b>S_повн</b>."
-                    ),
-                    hint="1) S_осн = a². 2) апофема SK = √(SO² + (a/2)²). 3) S_біч = 1/2 · P_осн · SK. 4) S_повн = S_біч + S_осн.",
-                    correct_answer="384",
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_quadrangular_pyramid(base_a=12, height=8, apothem=10),
-                    detailed_solution=(
-                        "1. площа основи квадрата: S_осн = 12² = 144.\n"
-                        "2. відстань від центра до сторони: OK = 12 / 2 = 6.\n"
-                        "3. апофема SK = √(8² + 6²) = √100 = 10.\n"
-                        "4. площа бічної поверхні: S_біч = (1/2) · (4 · 12) · 10 = 240.\n"
-                        "5. повна площа: S_повн = 240 + 144 = 384.\n"
-                        "відповідь: 384."
-                    ),
-                )
-            elif sub == "циліндр":
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="циліндр та його осьовий переріз",
-                    question=(
-                        "на рисунку зображено циліндр, осьовим перерізом якого є квадрат <b>ABCD</b> "
-                        "з діагоналлю <b>AC = 8√2</b>.\n\n"
-                        "обчисліть об'єм <b>V</b> цього циліндра. у відповідь запишіть значення виразу <b>V / π</b>."
-                    ),
-                    hint="сторона квадрата a = d / √2. висота циліндра h = a, радіус r = a / 2. формула об'єму: V = π · r² · h.",
-                    correct_answer="128",
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_cylinder(d=8, h=8),
-                    detailed_solution=(
-                        "1. сторона осьового перерізу: a = (8√2) / √2 = 8.\n"
-                        "2. висота h = 8, радіус r = 8 / 2 = 4.\n"
-                        "3. об'єм V = π · 4² · 8 = 128π  ⟹  V / π = 128.\n"
-                        "відповідь: 128."
-                    ),
-                )
-            else:
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="прямокутний паралелепіпед",
-                    question=(
-                        "на рисунку зображено прямокутний паралелепіпед <b>ABCDA₁B₁C₁D₁</b>.\n"
-                        "сторони основи дорівнюють <b>AB = 3</b>, <b>AD = 4</b>.\n"
-                        "діагональ паралелепіпеда <b>BD₁</b> утворює з площиною основи кут <b>45°</b>.\n\n"
-                        "обчисліть об'єм <b>V</b> цього паралелепіпеда."
-                    ),
-                    hint="діагональ основи BD = √(AB² + AD²). оскільки кут нахилу 45°, висота DD₁ = BD. об'єм V = a · b · h.",
-                    correct_answer="60",
-                    difficulty=3,
-                    is_nmt=True,
-                    diagram_svg=diagram_box_prism(a=3, b=4, angle=45),
-                    detailed_solution=(
-                        "1. діагональ прямокутної основи: BD = √(3² + 4²) = 5.\n"
-                        "2. у трикутнику D₁DB кут 45°, тому висота DD₁ = BD = 5.\n"
-                        "3. об'єм V = 3 · 4 · 5 = 60.\n"
-                        "відповідь: 60."
-                    ),
-                )
-
-        # --- 7. НМТ: Функції та графіки (Кількість коренів) ---
-        if "графік" in top_lower or "функці" in top_lower and "похідн" not in top_lower:
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="кількість коренів за графіком",
-                question=(
-                    "на рисунку зображено графік неперервної функції <b>y = f(x)</b>, "
-                    "визначеної на проміжку [-4; 5].\n\n"
-                    "користуючись рисунком, визначте кількість дійсних коренів рівняння <b>f(x) = 1</b> на цьому проміжку."
-                ),
-                hint="знайди кількість спільних точок перетину між графіком кривої та прямою y = 1.",
-                correct_answer="3",
-                difficulty=2,
-                is_nmt=True,
-                diagram_svg=diagram_function_roots(),
-                detailed_solution=(
-                    "1. рівняння f(x) = 1 графічно відповідає перетину y = f(x) та прямої y = 1.\n"
-                    "2. пряма y = 1 перетинає графік рівно у трьох точках.\n"
-                    "відповідь: 3."
-                ),
-            )
-
-        # --- 8. НМТ: Геометричний зміст похідної ---
-        if "похідн" in top_lower:
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="геометричний зміст похідної",
-                question=(
-                    "на рисунку зображено графік функції <b>y = f(x)</b> та дотичну до нього в точці з абсцисою <b>x₀</b>.\n"
-                    "дотична проходить через вузли координатної сітки: <b>A(-2; -1)</b> та <b>B(2; 5)</b>.\n\n"
-                    "знайдіть значення похідної <b>f'(x₀)</b>. у відповідь запишіть десятковий дріб (наприклад 1.5)."
-                ),
-                hint="значення похідної в точці дотику дорівнює кутовому коефіцієнту дотичної: f'(x₀) = k = (y₂ - y₁) / (x₂ - x₁).",
-                correct_answer="1.5",
-                difficulty=3,
-                is_nmt=True,
-                diagram_svg=diagram_derivative_tangent(),
-                detailed_solution=(
-                    "1. кутовий коефіцієнт дотичної: k = (5 - (-1)) / (2 - (-2)) = 6 / 4 = 1.5.\n"
-                    "2. за геометричним змістом похідної: f'(x₀) = k = 1.5.\n"
-                    "відповідь: 1.5."
-                ),
-            )
-
-        # --- 9. НМТ: Вектори та координати ---
-        if "вектор" in top_lower or "координат" in top_lower:
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="скалярний добуток векторів",
-                question=(
-                    "на рисунку в прямокутній системі координат зображено вектори <b>a⃗</b> та <b>b⃗</b>, "
-                    "початки яких збігаються з початком O(0; 0).\n"
-                    "кінець a⃗ лежить у точці A(3; 4), а кінець b⃗ — у точці B(6; -2).\n\n"
-                    "знайдіть скалярний добуток векторів <b>a⃗ · b⃗</b>."
-                ),
-                hint="формула скалярного добутку векторів: a⃗ · b⃗ = x₁ · x₂ + y₁ · y₂.",
-                correct_answer="10",
-                difficulty=2,
-                is_nmt=True,
-                diagram_svg=diagram_vectors(),
-                detailed_solution=(
-                    "1. координати векторів: a⃗ = (3; 4), b⃗ = (6; -2).\n"
-                    "2. a⃗ · b⃗ = 3 · 6 + 4 · (-2) = 18 - 8 = 10.\n"
-                    "відповідь: 10."
-                ),
-            )
-
-        # --- 10. НМТ: Чотирикутники (Ромб) ---
-        if "ромб" in top_lower or "чотирикутн" in top_lower:
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="діагоналі та периметр ромба",
-                question=(
-                    "на рисунку зображено ромб <b>ABCD</b>, діагоналі якого перетинаються в точці O.\n"
-                    "довжини діагоналей ромба дорівнюють <b>AC = 24</b> та <b>BD = 10</b>.\n\n"
-                    "обчисліть периметр <b>P</b> цього ромба."
-                ),
-                hint="діагоналі ромба перпендикулярні й діляться навпіл: AO = AC/2, BO = BD/2. сторона a = √(AO² + BO²). периметр P = 4a.",
-                correct_answer="52",
-                difficulty=3,
-                is_nmt=True,
-                diagram_svg=diagram_rhombus_diagonals(d1=24, d2=10, side=13),
-                detailed_solution=(
-                    "1. половини діагоналей: AO = 12, BO = 5.\n"
-                    "2. сторона ромба за теоремою Піфагора: AB = √(12² + 5²) = √169 = 13.\n"
-                    "3. периметр P = 4 · 13 = 52.\n"
-                    "відповідь: 52."
-                ),
-            )
-
-        # 11. Лінійні рівняння (7 клас)
-        if "рівнян" in top_lower and "порівнян" not in top_lower and "квадрат" not in top_lower and grade >= 6:
-            x = random.randint(2, 12)
-            a = random.randint(2, 6)
-            b = random.randint(1, 25)
-            c = a * x + b
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="лінійне рівняння",
-                question=f"розв'яжіть рівняння:\n\n<b>{a}x + {b} = {c}</b>\nзнайдіть <b>x</b>.",
-                hint="перенеси відомий доданок у праву частину зі зміною знака, зведи до ax = b, звідки x = b / a.",
-                correct_answer=str(x),
-                difficulty=1,
-            )
-
-        # 12. Шкільна арифметика для молодших і середніх класів
-        if grade == 1:
-            if "порівнян" in top_lower:
-                n1 = random.randint(1, 9)
-                n2 = random.randint(1, 9)
-                while n2 == n1:
-                    n2 = random.randint(1, 9)
-                ans = max(n1, n2)
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="порівняння чисел",
-                    question=f"яке число більше: <b>{n1}</b> чи <b>{n2}</b>? (введіть більше число).",
-                    hint="порівняй два числа на числовому промені: більше те, яке стоїть правіше.",
-                    correct_answer=str(ans),
-                    difficulty=1,
-                    detailed_solution=f"число {ans} є більшим за інше число.\nвідповідь: {ans}.",
-                )
-            if "фігур" in top_lower or "трикутн" in top_lower or "прямокутн" in top_lower:
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="геометричні фігури",
-                    question="скільки сторін має геометрична фігура <b>трикутник</b>?",
-                    hint="згадай назву фігури: вона має стільки ж сторін, скільки й кутів.",
-                    correct_answer="3",
-                    difficulty=1,
-                    detailed_solution="трикутник має 3 сторони та 3 вершини.\nвідповідь: 3.",
-                )
-            n1 = random.randint(1, 7)
-            n2 = random.randint(1, 10 - n1)
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="додавання у межах 10",
-                question=f"обчисліть значення суми:\n\n<b>{n1} + {n2} = ?</b>",
-                hint="об'єднай обидва доданки разом на числовому промені.",
-                correct_answer=str(n1 + n2),
-                difficulty=1,
-                detailed_solution=f"додаємо числа: {n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
-            )
-
-        if grade == 2:
-            n1 = random.randint(12, 65)
-            n2 = random.randint(5, 30)
-            if random.random() < 0.5:
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="додавання в межах 100",
-                    question=f"обчисліть значення виразу:\n\n<b>{n1} + {n2} = ?</b>",
-                    hint="додай десятки до десятків, а одиниці до одиниць.",
-                    correct_answer=str(n1 + n2),
-                    difficulty=1,
-                    detailed_solution=f"1. {n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
-                )
-            top_n = n1 + n2
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="віднімання в межах 100",
-                question=f"обчисліть значення виразу:\n\n<b>{top_n} - {n2} = ?</b>",
-                hint="відніми від зменшуваного від'ємник порозрядно.",
-                correct_answer=str(n1),
-                difficulty=1,
-                detailed_solution=f"1. {top_n} - {n2} = {n1}.\nвідповідь: {n1}.",
-            )
-
-        if grade == 3:
-            f1 = random.randint(2, 9)
-            f2 = random.randint(2, 9)
-            prod = f1 * f2
-            if "ділен" in top_lower:
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="табличне ділення",
-                    question=f"обчисліть значення частки:\n\n<b>{prod} : {f1} = ?</b>",
-                    hint="згадай таблицю множення: яке число при множенні на дільник дає ділене.",
-                    correct_answer=str(f2),
-                    difficulty=1,
-                    detailed_solution=f"оскільки {f1} · {f2} = {prod}, то {prod} : {f1} = {f2}.\nвідповідь: {f2}.",
-                )
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="табличне множення",
-                question=f"обчисліть значення добутку:\n\n<b>{f1} · {f2} = ?</b>",
-                hint="пригадай відповідний рядок таблиці множення.",
-                correct_answer=str(prod),
-                difficulty=1,
-                detailed_solution=f"множимо числа: {f1} · {f2} = {prod}.\nвідповідь: {prod}.",
-            )
-
-        if grade == 4:
-            a = random.randint(15, 80)
-            b = random.randint(4, 9)
-            return GeneratedTask(
-                grade=grade,
-                topic=topic,
-                title="множення багатоцифрових чисел",
-                question=f"обчисліть добуток:\n\n<b>{a} · {b} = ?</b>",
-                hint="розклади двоцифрове число на десятки та одиниці й помнож кожну частину окремо.",
-                correct_answer=str(a * b),
-                difficulty=1,
-                detailed_solution=f"1. {a} · {b} = {a * b}.\nвідповідь: {a * b}.",
-            )
-
-        if grade in (5, 6):
-            if "відсот" in top_lower:
-                pct = random.choice([10, 20, 25, 50])
-                base = random.choice([80, 120, 200, 300, 400])
-                ans = int(base * pct / 100)
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="знаходження відсотка від числа",
-                    question=f"знайдіть <b>{pct}%</b> від числа <b>{base}</b>.",
-                    hint="щоб знайти відсоток від числа, перетвори відсотки у десятковий дріб та помнож на дане число.",
-                    correct_answer=str(ans),
-                    difficulty=1,
-                    detailed_solution=f"1. {pct}% = {pct/100:.2g}.\n2. {base} · {pct/100:.2g} = {ans}.\nвідповідь: {ans}.",
-                )
-            if "дріб" in top_lower:
-                denom = random.choice([5, 7, 9, 11, 13])
-                num1 = random.randint(1, denom - 2)
-                num2 = random.randint(1, denom - num1)
-                return GeneratedTask(
-                    grade=grade,
-                    topic=topic,
-                    title="додавання звичайних дробів",
-                    question=f"обчисліть суму дробів з однаковими знаменниками:\n\n<b>{num1}/{denom} + {num2}/{denom} = ?</b>\n(у відповідь запишіть тільки чисельник отриманого дробу)",
-                    hint="при додаванні дробів з однаковими знаменниками знаменник залишають без змін, а чисельники додають.",
-                    correct_answer=str(num1 + num2),
-                    difficulty=1,
-                    detailed_solution=f"додаємо чисельники: {num1} + {num2} = {num1 + num2}, знаменник {denom}.\nчисельник дорівнює: {num1 + num2}.\nвідповідь: {num1 + num2}.",
-                )
-
-        # 13. Базовий генератор для арифметики та інших тем
-        v1 = random.randint(100, 400)
-        v2 = random.randint(50, 300)
-        v3 = random.randint(20, 90)
+    if "трапец" in top_lower:
+        bc = random.choice([6, 7, 8, 9])
+        ad = bc + 5
         return GeneratedTask(
             grade=grade,
             topic=topic,
-            title="обчислення виразу",
-            question=f"обчисліть значення виразу:\n\n<b>{v1} + {v2} - {v3} = ?</b>",
-            hint="згадай черговість дій: додавання та віднімання виконуються по черзі зліва направо.",
-            correct_answer=str(v1 + v2 - v3),
-            difficulty=1,
+            title="прямокутна трапеція",
+            question=(
+                f"на рисунку зображено прямокутну трапецію <b>ABCD</b> (AD ∥ BC, ∠A = 90°).\n"
+                f"відомо, що менша основа <b>BC = {bc}</b>, похила бічна сторона <b>CD = 10</b>, а гострий кут <b>∠D = 60°</b>.\n\n"
+                "знайдіть довжину більшої основи <b>AD</b>."
+            ),
+            hint="у прямокутному трикутнику CHD катет HD = CD · cos(60°) = 5. більша основа AD = BC + HD.",
+            correct_answer=str(ad),
+            difficulty=2,
+            diagram_svg=diagram_right_trapezoid(bc=bc, cd=10, angle_d=60),
+            detailed_solution=f"1. чотирикутник ABCH — прямокутник, AH = BC = {bc}.\n2. HD = 10 · 0.5 = 5.\n3. AD = {bc} + 5 = {ad}.\nвідповідь: {ad}.",
         )
+
+    if "висот" in top_lower or ("трикутн" in top_lower and grade >= 8):
+        ad_val, db_val, cd_val = random.choice([(9, 16, 12), (4, 9, 6), (16, 25, 20), (1, 16, 4)])
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="висота прямокутного трикутника",
+            question=(
+                "на рисунку зображено прямокутний трикутник <b>ABC</b> (∠C = 90°).\n"
+                f"висота CD ділить гіпотенузу на проекції <b>AD = {ad_val}</b> та <b>DB = {db_val}</b>.\n\n"
+                "знайдіть довжину висоти <b>CD</b>."
+            ),
+            hint="квадрат висоти дорівнює добутку проекцій катетів: CD² = AD · DB.",
+            correct_answer=str(cd_val),
+            difficulty=2,
+            diagram_svg=diagram_right_triangle_altitude(ad=ad_val, db=db_val, cd=cd_val),
+            detailed_solution=f"1. CD² = {ad_val} · {db_val} = {ad_val * db_val}.\n2. CD = {cd_val}.\nвідповідь: {cd_val}.",
+        )
+
+    if "дотичн" in top_lower or "коло" in top_lower:
+        r_val = random.choice([6, 8, 10, 12])
+        dist_val = 2 * r_val
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="дотичні до кола з однієї точки",
+            question=(
+                "на рисунку зображено коло з центром у точці <b>O</b>.\n"
+                f"з точки M проведено дві дотичні (кут між ними 60°), радіус <b>r = {r_val}</b>.\n\n"
+                "знайдіть відстань від точки M до центра кола <b>MO</b>."
+            ),
+            hint="бісектриса ділить кут навпіл (30°). катет проти кута 30° дорівнює половині гіпотенузи: MO = 2 · r.",
+            correct_answer=str(dist_val),
+            difficulty=2,
+            diagram_svg=diagram_circle_tangents(r=r_val, angle_m=60, dist=dist_val),
+            detailed_solution=f"1. ∠AMO = 30°.\n2. у прямокутному трикутнику MAO: MO = 2 · OA = 2 · {r_val} = {dist_val}.\nвідповідь: {dist_val}.",
+        )
+
+    if "пірамід" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="правильна чотирикутна піраміда",
+            question="на рисунку зображено правильну чотирикутну піраміду зі стороною основи 12 та висотою 8.\nобчисліть площу повної поверхні піраміди.",
+            hint="S_осн = a², апофема = √(h² + (a/2)²), S_біч = 1/2 · P · апофема, S_повн = S_біч + S_осн.",
+            correct_answer="384",
+            difficulty=3,
+            is_nmt=True,
+            diagram_svg=diagram_quadrangular_pyramid(base_a=12, height=8, apothem=10),
+            detailed_solution="1. S_осн = 144.\n2. апофема = 10.\n3. S_біч = 240.\n4. S_повн = 384.\nвідповідь: 384.",
+        )
+
+    if "циліндр" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="циліндр та осьовий переріз",
+            question="на рисунку зображено циліндр, осьовим перерізом якого є квадрат із діагоналлю 8√2.\nобчисліть значення виразу V / π.",
+            hint="висота h = 8, радіус r = 4. V = π · r² · h.",
+            correct_answer="128",
+            difficulty=3,
+            is_nmt=True,
+            diagram_svg=diagram_cylinder(d=8, h=8),
+            detailed_solution="1. h = 8, r = 4.\n2. V = π · 16 · 8 = 128π.\nвідповідь: 128.",
+        )
+
+    if "паралелепіпед" in top_lower or "призм" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="прямокутний паралелепіпед",
+            question="на рисунку зображено прямокутний паралелепіпед зі сторонами основи 3 і 4 та кутом нахилу діагоналі 45°.\nобчисліть об'єм V.",
+            hint="діагональ основи d = √(3² + 4²) = 5. висота h = d = 5. об'єм V = a · b · h.",
+            correct_answer="60",
+            difficulty=3,
+            is_nmt=True,
+            diagram_svg=diagram_box_prism(a=3, b=4, angle=45),
+            detailed_solution="1. d = 5, h = 5.\n2. V = 3 · 4 · 5 = 60.\nвідповідь: 60.",
+        )
+
+    if "похідн" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="геометричний зміст похідної",
+            question="на рисунку зображено графік функції y = f(x) та дотичну, що проходить через A(-2; -1) та B(2; 5).\nзнайдіть значення похідної f'(x₀).",
+            hint="значення похідної дорівнює кутовому коефіцієнту дотичної: k = (y₂ - y₁) / (x₂ - x₁).",
+            correct_answer="1.5",
+            difficulty=2,
+            diagram_svg=diagram_derivative_tangent(),
+            detailed_solution="1. k = (5 - (-1)) / (2 - (-2)) = 6 / 4 = 1.5.\nвідповідь: 1.5.",
+        )
+
+    if "вектор" in top_lower or "координат" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="скалярний добуток векторів",
+            question="на рисунку зображено вектори a⃗(3; 4) та b⃗(6; -2).\nзнайдіть скалярний добуток векторів a⃗ · b⃗.",
+            hint="формула скалярного добутку: a⃗ · b⃗ = x₁ · x₂ + y₁ · y₂.",
+            correct_answer="10",
+            difficulty=2,
+            diagram_svg=diagram_vectors(),
+            detailed_solution="1. a⃗ · b⃗ = 3 · 6 + 4 · (-2) = 18 - 8 = 10.\nвідповідь: 10.",
+        )
+
+    if "ромб" in top_lower or "чотирикутн" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="діагоналі та периметр ромба",
+            question="на рисунку зображено ромб ABCD з діагоналями AC = 24 та BD = 10.\nобчисліть периметр P ромба.",
+            hint="сторона a = √((d₁/2)² + (d₂/2)²). периметр P = 4a.",
+            correct_answer="52",
+            difficulty=2,
+            diagram_svg=diagram_rhombus_diagonals(d1=24, d2=10, side=13),
+            detailed_solution="1. a = √(12² + 5²) = 13.\n2. P = 4 · 13 = 52.\nвідповідь: 52.",
+        )
+
+    if "графік" in top_lower:
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="кількість коренів за графіком",
+            question="на рисунку зображено графік функції y = f(x).\nвизначте кількість дійсних коренів рівняння f(x) = 1.",
+            hint="знайди кількість точок перетину графіка функції з горизонтальною прямою y = 1.",
+            correct_answer="3",
+            difficulty=2,
+            diagram_svg=diagram_function_roots(),
+            detailed_solution="пряма y = 1 перетинає графік рівно у трьох точках.\nвідповідь: 3.",
+        )
+
+    return None
+
+
+def _generate_school_task(grade: int, topic: str) -> GeneratedTask:
+    """Генерація типових навчальних задач за підручниками О. Істера."""
+    top_lower = topic.lower()
+
+    if grade == 1:
+        if "порівнян" in top_lower:
+            n1 = random.randint(1, 9)
+            n2 = random.randint(1, 9)
+            while n2 == n1:
+                n2 = random.randint(1, 9)
+            ans = max(n1, n2)
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="порівняння чисел",
+                question=f"яке число більше: <b>{n1}</b> чи <b>{n2}</b>? (введіть більше число).",
+                hint="порівняй два числа: більше те, яке стоїть правіше на числовому промені.",
+                correct_answer=str(ans),
+                difficulty=1,
+                detailed_solution=f"число {ans} є більшим.\nвідповідь: {ans}.",
+            )
+        if "фігур" in top_lower or "трикутн" in top_lower:
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="геометричні фігури",
+                question="скільки сторін має геометрична фігура <b>трикутник</b>?",
+                hint="згадай назву фігури: вона має стільки ж сторін, скільки й кутів.",
+                correct_answer="3",
+                difficulty=1,
+                detailed_solution="трикутник має 3 сторони.\nвідповідь: 3.",
+            )
+        n1 = random.randint(1, 7)
+        n2 = random.randint(1, 10 - n1)
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="додавання у межах 10",
+            question=f"обчисліть значення суми:\n\n<b>{n1} + {n2} = ?</b>",
+            hint="об'єднай обидва числа на числовому ряду.",
+            correct_answer=str(n1 + n2),
+            difficulty=1,
+            detailed_solution=f"{n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
+        )
+
+    if grade == 2:
+        n1 = random.randint(12, 65)
+        n2 = random.randint(5, 30)
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="додавання в межах 100",
+            question=f"обчисліть значення виразу:\n\n<b>{n1} + {n2} = ?</b>",
+            hint="додай десятки до десятків, а одиниці до одиниць.",
+            correct_answer=str(n1 + n2),
+            difficulty=1,
+            detailed_solution=f"{n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
+        )
+
+    if grade == 3:
+        f1 = random.randint(2, 9)
+        f2 = random.randint(2, 9)
+        prod = f1 * f2
+        if "ділен" in top_lower:
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="табличне ділення",
+                question=f"обчисліть значення частки:\n\n<b>{prod} : {f1} = ?</b>",
+                hint="згадай таблицю множення: яке число при множенні на дільник дає ділене.",
+                correct_answer=str(f2),
+                difficulty=1,
+                detailed_solution=f"{prod} : {f1} = {f2}.\nвідповідь: {f2}.",
+            )
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="табличне множення",
+            question=f"обчисліть значення добутку:\n\n<b>{f1} · {f2} = ?</b>",
+            hint="пригадай таблицю множення.",
+            correct_answer=str(prod),
+            difficulty=1,
+            detailed_solution=f"{f1} · {f2} = {prod}.\nвідповідь: {prod}.",
+        )
+
+    if grade == 4:
+        a = random.randint(15, 80)
+        b = random.randint(4, 9)
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="множення чисел",
+            question=f"обчисліть добуток:\n\n<b>{a} · {b} = ?</b>",
+            hint="розклади число на десятки та одиниці й помнож кожну частину.",
+            correct_answer=str(a * b),
+            difficulty=1,
+            detailed_solution=f"{a} · {b} = {a * b}.\nвідповідь: {a * b}.",
+        )
+
+    if grade in (5, 6):
+        if "відсот" in top_lower:
+            pct = random.choice([10, 20, 25, 50])
+            base = random.choice([80, 120, 200, 300, 400])
+            ans = int(base * pct / 100)
+            return GeneratedTask(
+                grade=grade,
+                topic=topic,
+                title="відсоток від числа",
+                question=f"знайдіть <b>{pct}%</b> від числа <b>{base}</b>.",
+                hint="перетвори відсоток у дріб та помнож на дане число.",
+                correct_answer=str(ans),
+                difficulty=1,
+                detailed_solution=f"{base} · {pct/100:.2g} = {ans}.\nвідповідь: {ans}.",
+            )
+        denom = random.choice([5, 7, 9, 11])
+        n1 = random.randint(1, denom - 2)
+        n2 = random.randint(1, denom - n1)
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="додавання звичайних дробів",
+            question=f"обчисліть суму дробів:\n\n<b>{n1}/{denom} + {n2}/{denom} = ?</b>\n(у відповідь запишіть тільки чисельник отриманого дробу)",
+            hint="знаменник залишається без змін, чисельники додаються.",
+            correct_answer=str(n1 + n2),
+            difficulty=1,
+            detailed_solution=f"чисельник: {n1} + {n2} = {n1 + n2}.\nвідповідь: {n1 + n2}.",
+        )
+
+    if "рівнян" in top_lower and "порівнян" not in top_lower and grade >= 6:
+        x = random.randint(2, 12)
+        a = random.randint(2, 6)
+        b = random.randint(1, 20)
+        c = a * x + b
+        return GeneratedTask(
+            grade=grade,
+            topic=topic,
+            title="лінійне рівняння",
+            question=f"розв'яжіть рівняння:\n\n<b>{a}x + {b} = {c}</b>\nзнайдіть <b>x</b>.",
+            hint="перенеси число в праву частину та поділи на коефіцієнт біля x.",
+            correct_answer=str(x),
+            difficulty=1,
+            detailed_solution=f"1. {a}x = {c - b}.\n2. x = {x}.\nвідповідь: {x}.",
+        )
+
+    # Базовий випадок для арифметичних обчислень
+    v1 = random.randint(50, 200)
+    v2 = random.randint(10, 90)
+    v3 = random.randint(5, 40)
+    ans = v1 + v2 - v3
+    return GeneratedTask(
+        grade=grade,
+        topic=topic,
+        title="обчислення виразу",
+        question=f"обчисліть значення виразу:\n\n<b>{v1} + {v2} - {v3} = ?</b>",
+        hint="виконай дії по черзі зліва направо.",
+        correct_answer=str(ans),
+        difficulty=1,
+        detailed_solution=f"1. {v1} + {v2} = {v1 + v2}.\n2. {v1 + v2} - {v3} = {ans}.\nвідповідь: {ans}.",
+    )
 
 
 class GeminiAIChecker(BaseAIChecker):

@@ -24,6 +24,31 @@ def format_difficulty(level: int) -> str:
     return f"{max(1, min(level, 3))}/3"
 
 
+def render_task_view(task: Task, topic_title: str, grade: int) -> tuple[str, object]:
+    """Формує текст повідомлення та клавіатуру для перегляду завдання."""
+    stars = format_difficulty(task.difficulty)
+    nmt_badge = " [формат нмт]" if task.is_nmt else ""
+    diagram_notice = (
+        "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
+        if task.diagram_svg
+        else ""
+    )
+    text = (
+        f"<b>тема:</b> {topic_title}\n"
+        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
+        f"{task.question_text}\n"
+        f"{diagram_notice}\n"
+        "<i>вибирай дію нижче:</i>"
+    )
+    keyboard = get_task_keyboard(
+        task_id=task.id,
+        topic_id=task.topic_id,
+        grade=grade,
+        has_diagram=bool(task.diagram_svg),
+    )
+    return text, keyboard
+
+
 @router.callback_query(F.data.startswith("topics_list:"))
 async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> None:
     """Повернення до списку тем або предметів для вказаного класу."""
@@ -115,31 +140,9 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
         detailed_solution=generated.detailed_solution,
     )
 
-    stars = format_difficulty(task.difficulty)
-    nmt_badge = " [формат нмт]" if task.is_nmt else ""
-    diagram_notice = (
-        "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
-        if task.diagram_svg
-        else ""
-    )
-    text = (
-        f"<b>тема:</b> {topic.title}\n"
-        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
-        f"{task.question_text}\n"
-        f"{diagram_notice}\n"
-        "<i>вибирай дію нижче:</i>"
-    )
-
+    text, markup = render_task_view(task, topic.title, topic.grade)
     if isinstance(callback.message, Message):
-        await callback.message.edit_text(
-            text=text,
-            reply_markup=get_task_keyboard(
-                task_id=task.id,
-                topic_id=topic.id,
-                grade=topic.grade,
-                has_diagram=bool(task.diagram_svg),
-            ),
-        )
+        await callback.message.edit_text(text=text, reply_markup=markup)
 
 
 @router.callback_query(F.data.startswith("task:"))
@@ -164,32 +167,9 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
     topic_title = topic.title if topic else "математика"
 
     await callback.answer()
-
-    stars = format_difficulty(task.difficulty)
-    nmt_badge = " [формат нмт]" if task.is_nmt else ""
-    diagram_notice = (
-        "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
-        if task.diagram_svg
-        else ""
-    )
-    text = (
-        f"<b>тема:</b> {topic_title}\n"
-        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
-        f"{task.question_text}\n"
-        f"{diagram_notice}\n"
-        "<i>вибирай дію нижче:</i>"
-    )
-
+    text, markup = render_task_view(task, topic_title, grade)
     if isinstance(callback.message, Message):
-        await callback.message.edit_text(
-            text=text,
-            reply_markup=get_task_keyboard(
-                task_id=task.id,
-                topic_id=task.topic_id,
-                grade=grade,
-                has_diagram=bool(task.diagram_svg),
-            ),
-        )
+        await callback.message.edit_text(text=text, reply_markup=markup)
 
 
 @router.callback_query(F.data.startswith("solve:"))

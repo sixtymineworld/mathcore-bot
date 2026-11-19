@@ -1,3 +1,4 @@
+import functools
 import hashlib
 import json
 import logging
@@ -21,8 +22,9 @@ def get_curriculum_hash() -> str:
     return hasher.hexdigest()[:16]
 
 
+@functools.lru_cache(maxsize=1)
 def load_curriculum() -> list[dict[str, Any]]:
-    """Завантажує всі теми з JSON-фікстур у каталозі data/curriculum/."""
+    """Завантажує всі теми з JSON-фікстур у каталозі data/curriculum/ (кешується в пам'яті)."""
     curriculum: list[dict[str, Any]] = []
 
     if not CURRICULUM_DIR.exists():

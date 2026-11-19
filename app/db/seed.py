@@ -19,18 +19,11 @@ async def seed_initial_data() -> None:
         stmt = select(func.count(Topic.id))
         count = (await session.execute(stmt)).scalar() or 0
 
-        # Перевірка наявності застарілих статичних завдань з минулих релізів
-        has_legacy_static_tasks = (
-            await session.execute(
-                select(Task.id).where(Task.title == "лічба предметів зліва і справа").limit(1)
-            )
-        ).scalar_one_or_none() is not None
-
-        if count == len(curriculum) and not has_legacy_static_tasks:
+        if count == len(curriculum):
             logger.info("навчальну програму з JSON вже синхронізовано (%d тем).", count)
             return
 
-        if count > 0 or has_legacy_static_tasks:
+        if count > 0:
             logger.info(
                 "оновлення структури навчальної програми (%d тем -> %d тем з JSON)...",
                 count,
