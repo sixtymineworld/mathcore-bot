@@ -607,11 +607,12 @@ class MockAIChecker(BaseAIChecker):
 
 
 class GeminiAIChecker(BaseAIChecker):
-    """Інтеграція з Google Gemini API для інтелектуального аналізу відповідей та генерації завдань НМТ."""
+    """Інтеграція з високошвидкісною моделлю Google Gemini для аналізу відповідей та генерації завдань за програмою О. Істера."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-3.5-flash-lite"):
         self.api_key = api_key
         self.model = model
+        self.backup_model = "gemini-flash-lite-latest"
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models"
         self.mock_fallback = MockAIChecker()
 
@@ -620,51 +621,53 @@ class GeminiAIChecker(BaseAIChecker):
         prompt: str,
         json_mode: bool = False,
         temperature: float = 0.2,
+        max_tokens: int = 800,
     ) -> str | None:
-        url = f"{self.base_url}/{self.model}:generateContent?key={self.api_key}"
         headers = {"Content-Type": "application/json"}
-
         generation_config: dict[str, object] = {
             "temperature": temperature,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": max_tokens,
         }
-
         if json_mode:
             generation_config["responseMimeType"] = "application/json"
 
         payload = {
-            "contents": [
-                {
-                    "parts": [{"text": prompt}],
-                }
-            ],
+            "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": generation_config,
         }
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    url,
-                    headers=headers,
-                    json=payload,
-                    timeout=aiohttp.ClientTimeout(total=20),
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        candidates = data.get("candidates", [])
-                        if candidates:
-                            parts = candidates[0].get("content", {}).get("parts", [])
-                            if parts:
-                                return str(parts[0].get("text", ""))
-                    else:
-                        error_text = await resp.text()
-                        logger.error(
-                            "Помилка Gemini API [HTTP %s]: %s",
-                            resp.status,
-                            error_text,
-                        )
-        except Exception as e:
-            logger.error("Виняток при зверненні до Gemini API: %s", e)
+        # Спроба з основною моделлю, а при необхідності — зі швидкою запасною моделлю
+        models_to_try = [self.model]
+        if self.backup_model and self.backup_model != self.model:
+            models_to_try.append(self.backup_model)
+
+        for mod in models_to_try:
+            url = f"{self.base_url}/{mod}:generateContent?key={self.api_key}"
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        url,
+                        headers=headers,
+                        json=payload,
+                        timeout=aiohttp.ClientTimeout(total=10),
+                    ) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                parts = candidates[0].get("content", {}).get("parts", [])
+                                if parts:
+                                    return str(parts[0].get("text", ""))
+                        else:
+                            error_text = await resp.text()
+                            logger.warning(
+                                "Помилка Gemini API [%s, HTTP %s]: %s",
+                                mod,
+                                resp.status,
+                                error_text[:200],
+                            )
+            except Exception as e:
+                logger.warning("Виняток при запиті до Gemini API [%s]: %s", mod, e)
 
         return None
 
@@ -676,27 +679,27 @@ class GeminiAIChecker(BaseAIChecker):
         grade: int,
     ) -> AICheckResult:
         prompt = (
-            "ти — інтерактивний репетитор з математики для підготовки до НМТ та шкільної програми в україні.\n"
-            "твій стиль спілкування: доброзичливий, сучасний, лаконічний, виключно маленькими літерами (lowercase).\n\n"
-            f"завдання для учня ({grade} клас / формат нмт):\n"
+            f"ти — уважний та доброзичливий вчитель математики за програмою О. Істера ({grade} клас).\n"
+            "твій стиль: виключно маленькими літерами (lowercase), чіткий, підтримуючий.\n\n"
+            f"завдання для учня ({grade} клас):\n"
             f"умова: {task_question}\n"
-            f"еталонна правильна відповідь: {correct_answer}\n"
+            f"еталонна відповідь: {correct_answer}\n"
             f"відповідь учня: {user_answer}\n\n"
             "інструкція:\n"
             "1. перевір, чи відповідь учня правильна або математично еквівалентна еталонній "
-            "(враховуй коми та крапки в десяткових дробах, скорочені дроби, форми запису тощо).\n"
-            "2. якщо відповідь неправильна — зрозумій причину неточності (помилка знаку, дії тощо), "
-            "але НЕ розкривай одразу фінальну відповідь у полі feedback!\n"
-            "3. у полі detailed_solution напиши покроковий хід розв'язку задачі.\n\n"
+            "(враховуй коми та крапки в десяткових дробах, пробіли тощо).\n"
+            "2. якщо відповідь правильна: коротко похвали учня.\n"
+            "3. якщо відповідь неправильна: доброзичливо поясни суть помилки, але НЕ видавай одразу готову відповідь у полі feedback!\n"
+            "4. у detailed_solution напиши покроковий хід розв'язання.\n\n"
             "відповідь надай суворо валідним JSON форматом:\n"
             "{\n"
             '  "is_correct": true,\n'
-            '  "feedback": "короткий фідбек учню маленькими літерами",\n'
+            '  "feedback": "короткий фідбек маленькими літерами",\n'
             '  "detailed_solution": "покроковий розв\'язок маленькими літерами"\n'
             "}"
         )
 
-        raw_response = await self._generate_content(prompt, json_mode=True, temperature=0.1)
+        raw_response = await self._generate_content(prompt, json_mode=True, temperature=0.1, max_tokens=500)
         if raw_response:
             try:
                 parsed = json.loads(raw_response)
@@ -728,19 +731,19 @@ class GeminiAIChecker(BaseAIChecker):
         custom_hint: str | None = None,
     ) -> str:
         prompt = (
-            f"ти — розумний педагогічний ментор з математики для підготовки до НМТ ({grade} клас).\n"
-            "твій стиль спілкування: виключно маленькими літерами (lowercase), лаконічний, доброзичливий.\n\n"
+            f"ти — вчитель-наставник з математики за підручниками О. Істера ({grade} клас).\n"
+            "твій стиль спілкування: виключно маленькими літерами (lowercase), лаконічний.\n\n"
             f"умова завдання: {task_question}\n"
             f"{'напрямок думки: ' + custom_hint if custom_hint else ''}\n\n"
             "суворі правила для підказки:\n"
-            "1. покажи загальну формулу або геометричну властивість.\n"
-            "2. КАТЕГОРИЧНО ЗАБОРОНЕНО підставляти конкретні числа із задачі у формулу!\n"
+            "1. нагадай базове правило, алгоритм чи формулу з підручника О. Істера.\n"
+            "2. КАТЕГОРИЧНО ЗАБОРОНЕНО підставляти числа із задачі або виконувати обчислення за учня!\n"
             "3. КАТЕГОРИЧНО ЗАБОРОНЕНО розкривати кінцеву відповідь.\n"
-            "4. підказка має бути короткою (1-2 речення).\n"
+            "4. довжина підказки: 1-2 короткі речення.\n"
             "поверни лише текст самої підказки."
         )
 
-        response = await self._generate_content(prompt, json_mode=False, temperature=0.3)
+        response = await self._generate_content(prompt, json_mode=False, temperature=0.2, max_tokens=250)
         if response:
             clean_text = response.replace("```", "").strip().lower()
             return f"<b>підказка ({grade} клас):</b>\n\n{clean_text}"
@@ -756,39 +759,61 @@ class GeminiAIChecker(BaseAIChecker):
         grade: int,
         topic: str,
     ) -> GeneratedTask:
+        has_geometry_need = grade >= 7 and any(
+            w in topic.lower()
+            for w in [
+                "геометр",
+                "трикутн",
+                "чотирикутн",
+                "трапец",
+                "коло",
+                "графік",
+                "вектор",
+                "пірамід",
+                "стереометр",
+                "циліндр",
+                "призм",
+            ]
+        )
+
+        geom_instruction = (
+            "для цієї геометричної теми створи валідний лаконічний SVG-малюнок (diagram_svg) з viewBox='0 0 380 230'.\n"
+            if has_geometry_need
+            else "малюнок diagram_svg НЕ потрібен, встанови значення null.\n"
+        )
+
+        is_nmt_spec = "true якщо це задача формату НМТ для 10-11 класів, інакше false" if grade >= 10 else "false"
+
         prompt = (
-            f"ти — професійний укладач завдань з математики для НМТ та шкільної програми для {grade} класу в україні.\n"
+            f"ти — досвідчений викладач математики за підручниками О. С. Істера для {grade} класу в україні.\n"
             f"обрана тема: {topic}\n"
-            "твій стиль: виключно маленькими літерами (lowercase), чіткий, академічний.\n\n"
+            "твій стиль: виключно маленькими літерами (lowercase), чіткий, зрозумілий учневі.\n\n"
             "завдання:\n"
-            "згенеруй повноцінне прикладне завдання у форматі НМТ (Національного мультипредметного тесту) або програми високого рівня (2-3 логічні кроки).\n"
-            "якщо тема стосується геометрії (планіметрія, стереометрія) або графіків функцій/векторів — ОБОВ'ЯЗКОВО сформуй валідний SVG-малюнок (diagram_svg)!\n\n"
-            "вимоги до SVG (diagram_svg):\n"
-            "- viewBox='0 0 380 230' xmlns='http://www.w3.org/2000/svg' class='math-diagram-svg'.\n"
-            "- фон: <rect x='8' y='8' width='364' height='214' rx='12' fill='#ebd6c1' stroke='#d6b99d' stroke-width='1.5'/>\n"
-            "- основні лінії stroke='#4d301a' stroke-width='2.2', пунктири для висот/осей stroke-dasharray='4,4'.\n"
-            "- підписи вершин (латиниця A, B, C, D...): fill='#4d301a' font-family='Apple Garamond, EB Garamond, Garamond, serif' font-size='16' font-weight='700'.\n"
-            "- числа та розміри: fill='#4d301a' font-family='Taktika Sans, Onest, Plus Jakarta Sans, sans-serif' font-size='13' font-weight='600'.\n\n"
-            "правила для умови (question):\n"
-            "1. чіткий опис рисунка ('на рисунку зображено...').\n"
-            "2. відповідь (correct_answer) має бути ОДНИМ числом (ціле число або десятковий дріб, наприклад: 12, 1.5, 384, 52), щоб учень міг записати його в бланк відповідей.\n"
-            "3. підказка (hint): формула та хід думки БЕЗ підстановки чисел.\n"
-            "4. покроковий розв'язок (detailed_solution): розгорнуте пояснення кожного кроку.\n"
-            "5. складність: від 2 до 3.\n\n"
+            f"склади одне типове практичне завдання для {grade} класу за матеріалом та стилем підручника О. Істера "
+            f"за темою «{topic}» (це може бути приклад на обчислення, рівняння, властивість чи класична текстова задача з підручника).\n"
+            f"завдання має суворо відповідати рівню складності {grade} класу (не ускладнюй штучно до формату тестів НМТ для молодших чи середніх класів).\n"
+            f"{geom_instruction}\n"
+            "вимоги до завдання:\n"
+            "1. умова (question): чітка, лаконічна, без довгих передмов.\n"
+            "2. відповідь (correct_answer): ОДНЕ число (ціле або десятковий дріб через крапку чи кому, наприклад: 12, 4.5, -7, 180), щоб учень міг швидко ввести його з клавіатури.\n"
+            "3. підказка (hint): формула чи правило БЕЗ підстановки чисел і без розкриття відповіді.\n"
+            "4. покроковий розв'язок (detailed_solution): розгорнуте коротке пояснення дій.\n"
+            "5. складність: від 1 до 2 для звичайних вправ підручника, 3 для підвищеної складності.\n"
+            f"6. is_nmt: {is_nmt_spec}.\n\n"
             "відповідь надай суворо валідним JSON форматом:\n"
             "{\n"
-            '  "title": "коротка назва завдання",\n'
+            '  "title": "коротка назва вправи",\n'
             '  "question": "текст умови завдання",\n'
-            '  "hint": "формула або правило",\n'
+            '  "hint": "підказка",\n'
             '  "correct_answer": "числове значення",\n'
-            '  "difficulty": 3,\n'
-            '  "is_nmt": true,\n'
-            '  "diagram_svg": "<svg viewBox=\\"0 0 380 230\\" ...>...</svg>",\n'
+            '  "difficulty": 1,\n'
+            f'  "is_nmt": false,\n'
+            '  "diagram_svg": null,\n'
             '  "detailed_solution": "покроковий розв\'язок"\n'
             "}"
         )
 
-        raw = await self._generate_content(prompt, json_mode=True, temperature=0.7)
+        raw = await self._generate_content(prompt, json_mode=True, temperature=0.5, max_tokens=800)
         if raw:
             try:
                 parsed = json.loads(raw)
@@ -796,16 +821,18 @@ class GeminiAIChecker(BaseAIChecker):
                 if isinstance(diagram_svg, str) and not diagram_svg.strip().startswith("<svg"):
                     diagram_svg = None
 
+                is_nmt = bool(parsed.get("is_nmt", False)) and grade >= 10
+
                 return GeneratedTask(
                     grade=grade,
                     topic=topic,
                     title=str(parsed.get("title", "завдання")).lower(),
                     question=str(parsed["question"]).lower(),
-                    hint=str(parsed.get("hint", "скористайся відповідним правилом або формулою.")).lower(),
+                    hint=str(parsed.get("hint", "скористайся правилом або формулою з підручника.")).lower(),
                     correct_answer=str(parsed["correct_answer"]).lower().strip(),
-                    difficulty=int(parsed.get("difficulty", 2)),
+                    difficulty=int(parsed.get("difficulty", 1)),
                     diagram_svg=diagram_svg,
-                    is_nmt=bool(parsed.get("is_nmt", True if grade >= 10 else False)),
+                    is_nmt=is_nmt,
                     detailed_solution=parsed.get("detailed_solution"),
                 )
             except Exception as e:

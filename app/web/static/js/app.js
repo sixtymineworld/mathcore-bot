@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function generateNewTask(topicId) {
     resetTaskUI();
-    if (taskQuestion) taskQuestion.innerHTML = "<i>генерація завдання у форматі нмт за допомогою ai...</i>";
+    if (taskQuestion) taskQuestion.innerHTML = "<i>генерація завдання за підручником о. істера...</i>";
     try {
       const res = await apiRequest(`/topics/${topicId}/generate`, {
         method: "POST",
@@ -482,9 +482,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (taskTitle) taskTitle.textContent = task.title || "завдання";
     if (taskDifficulty) taskDifficulty.textContent = `${task.difficulty || 1}/3`;
 
-    // Відображення бейджа формату НМТ
+    // Відображення бейджа формату НМТ тільки для відповідних завдань
     if (taskNmtBadge) {
-      if (task.is_nmt || (task.title && task.title.toLowerCase().includes("нмт"))) {
+      if (task.is_nmt) {
         taskNmtBadge.classList.remove("hidden");
       } else {
         taskNmtBadge.classList.add("hidden");

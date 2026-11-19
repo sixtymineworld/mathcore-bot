@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # Налаштування AI (Google Gemini)
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
-    GEMINI_MODEL: str = Field(default="gemini-3.5-flash", description="Назва моделі Gemini")
+    GEMINI_MODEL: str = Field(default="gemini-3.5-flash-lite", description="Назва моделі Gemini")
 
     # Налаштування Web API / Telegram Mini App
     WEB_HOST: str = Field(default="0.0.0.0", description="Хост для запуску FastAPI")
