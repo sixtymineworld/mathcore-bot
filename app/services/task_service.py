@@ -246,8 +246,12 @@ class TaskService:
             }
 
     @staticmethod
-    async def get_leaderboard(current_tg_id: int | None = None, limit: int = 50) -> dict:
-        """Повертає топ користувачів за балами та позицію поточного учня."""
+    async def get_leaderboard(
+        current_tg_id: int | None = None,
+        grade: int | None = None,
+        limit: int = 50,
+    ) -> dict:
+        """Повертає топ користувачів за балами серед обраного класу та позицію поточного учня."""
         async with get_session() as session:
             # Підзапит: унікальні розв'язані задачі з їхньою складністю
             subq = (
@@ -262,8 +266,8 @@ class TaskService:
                 .subquery()
             )
 
-            # Рейтинг за сумою балів
-            user_scores = (
+            # Рейтинг за сумою балів із фільтром за класом
+            stmt = (
                 select(
                     User.id,
                     User.tg_id,
@@ -274,6 +278,13 @@ class TaskService:
                     func.count(subq.c.task_id).label("solved_count"),
                 )
                 .join(subq, User.id == subq.c.user_id)
+            )
+
+            if grade is not None:
+                stmt = stmt.where(User.grade == grade)
+
+            user_scores = (
+                stmt
                 .group_by(User.id, User.tg_id, User.first_name, User.username, User.grade)
                 .order_by(
                     func.sum(subq.c.difficulty * 10).desc(),
@@ -283,7 +294,11 @@ class TaskService:
             )
 
             top_rows = (await session.execute(user_scores.limit(limit))).all()
-            total_stmt = select(func.count(func.distinct(subq.c.user_id)))
+
+            # Загальна кількість учасників серед цього класу
+            total_stmt = select(func.count(func.distinct(User.id))).join(subq, User.id == subq.c.user_id)
+            if grade is not None:
+                total_stmt = total_stmt.where(User.grade == grade)
             total_participants = (await session.execute(total_stmt)).scalar() or 0
 
             top_list = []
@@ -314,34 +329,39 @@ class TaskService:
             if current_tg_id and not current_user_found:
                 curr_user = (await session.execute(select(User).where(User.tg_id == current_tg_id))).scalar_one_or_none()
                 if curr_user:
-                    u_score_stmt = (
-                        select(
-                            func.coalesce(func.sum(subq.c.difficulty * 10), 0).label("points"),
-                            func.count(subq.c.task_id).label("solved_count"),
+                    # Якщо клас збігається або клас не вказано, знаходимо позицію поточного користувача
+                    if grade is None or curr_user.grade == grade:
+                        u_score_stmt = (
+                            select(
+                                func.coalesce(func.sum(subq.c.difficulty * 10), 0).label("points"),
+                                func.count(subq.c.task_id).label("solved_count"),
+                            )
+                            .where(subq.c.user_id == curr_user.id)
                         )
-                        .where(subq.c.user_id == curr_user.id)
-                    )
-                    u_res = (await session.execute(u_score_stmt)).one_or_none()
-                    if u_res and u_res.points > 0:
-                        current_user_points = int(u_res.points)
-                        current_user_solved = int(u_res.solved_count)
-                        user_points_subq = (
-                            select(func.sum(subq.c.difficulty * 10).label("total_pts"))
-                            .group_by(subq.c.user_id)
-                            .having(func.sum(subq.c.difficulty * 10) > current_user_points)
-                            .subquery()
-                        )
-                        higher_rank = (await session.execute(select(func.count()).select_from(user_points_subq))).scalar() or 0
-                        current_user_rank = higher_rank + 1
-                    else:
-                        current_user_rank = total_participants + 1
+                        u_res = (await session.execute(u_score_stmt)).one_or_none()
+                        if u_res and u_res.points > 0:
+                            current_user_points = int(u_res.points)
+                            current_user_solved = int(u_res.solved_count)
+                            user_points_subq = (
+                                select(func.sum(subq.c.difficulty * 10).label("total_pts"))
+                                .join(User, User.id == subq.c.user_id)
+                                .where(User.grade == curr_user.grade if grade is not None else True)
+                                .group_by(subq.c.user_id)
+                                .having(func.sum(subq.c.difficulty * 10) > current_user_points)
+                                .subquery()
+                            )
+                            higher_rank = (await session.execute(select(func.count()).select_from(user_points_subq))).scalar() or 0
+                            current_user_rank = higher_rank + 1
+                        else:
+                            current_user_rank = total_participants + 1
 
             return {
+                "grade": grade,
                 "top_users": top_list,
                 "current_user_rank": current_user_rank,
                 "current_user_points": current_user_points,
                 "current_user_solved": current_user_solved,
-                "total_participants": max(total_participants, 1 if current_tg_id else 0),
+                "total_participants": max(total_participants, 1 if (current_user_found or current_user_rank > 0) else 0),
             }
 
     get_user_stats = get_user_profile

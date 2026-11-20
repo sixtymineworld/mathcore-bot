@@ -240,18 +240,26 @@
         </div>
       </section>
 
-      <!-- Вкладка 3: Топ учнів (Лідерборд) -->
+      <!-- Вкладка 3: Топ учнів (Лідерборд по класах) -->
       <section id="tab-leaderboard" class="tab-content hidden">
         <div class="leaderboard-container">
           <div class="leaderboard-header">
-            <h2 class="leaderboard-title">топ найкращих учнів</h2>
-            <p class="leaderboard-sub">рейтинг за набраними балами за розв'язані завдання</p>
+            <h2 class="leaderboard-title">топ учнів</h2>
+            <p class="leaderboard-sub" id="leaderboard-sub-text">рейтинг за набраними балами серед учнів класу</p>
           </div>
 
-          <!-- Мій поточний статус у лідерборді -->
+          <!-- Вибір класу для перегляду топу -->
+          <div class="grade-selector-container leaderboard-grade-selector">
+            <div class="section-label">клас:</div>
+            <div class="grade-chips" id="leaderboard-grade-chips">
+              <!-- Генерується динамічно від 1 до 11 -->
+            </div>
+          </div>
+
+          <!-- Мій поточний статус у лідерборді цього класу -->
           <div class="my-leaderboard-banner" id="my-leaderboard-banner">
             <div class="my-rank-badge">
-              <span class="my-rank-label">твоє місце:</span>
+              <span class="my-rank-label" id="my-rank-label">твоє місце:</span>
               <span class="my-rank-val" id="my-rank-val">#—</span>
             </div>
             <div class="my-score-group">
@@ -266,7 +274,7 @@
             </div>
           </div>
 
-          <!-- Подіум для топ-3 -->
+          <!-- Подіум для топ-3 обраного класу -->
           <div class="podium-wrapper" id="podium-wrapper">
             <div class="podium-step step-silver" id="podium-2">
               <div class="podium-avatar" id="podium-avatar-2">2</div>
@@ -302,7 +310,7 @@
 
           <!-- Таблиця результатів -->
           <div class="leaderboard-list-section">
-            <div class="section-label">таблиця результатів:</div>
+            <div class="section-label" id="leaderboard-section-label">результати (7 клас):</div>
             <div class="leaderboard-list" id="leaderboard-list">
               <div class="loading-state">завантаження рейтингу...</div>
             </div>

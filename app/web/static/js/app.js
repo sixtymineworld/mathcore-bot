@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Стан застосунку зі збереженням вибору учня
   const state = {
     currentGrade: savedGrade ? parseInt(savedGrade, 10) : 7,
+    leaderboardGrade: savedGrade ? parseInt(savedGrade, 10) : 7,
     currentSubject: savedSubject || "алгебра",
     currentTopic: null,
     currentTask: null,
@@ -283,10 +284,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     state.currentGrade = grade;
+    state.leaderboardGrade = grade;
     try {
       localStorage.setItem("mathcore_grade", grade.toString());
     } catch (e) {}
     renderGradeChips();
+    renderLeaderboardGradeChips();
 
     const gradeText = grade === 11 ? "11 клас (нмт)" : `${grade} клас`;
     const badgeGrade = document.getElementById("badge-grade");
@@ -808,32 +811,91 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==========================================
-  // Топ учнів (Лідерборд)
+  // Топ учнів (Лідерборд по класах)
   // ==========================================
   const leaderboardList = document.getElementById("leaderboard-list");
+  const leaderboardGradeChips = document.getElementById("leaderboard-grade-chips");
+  const leaderboardSubText = document.getElementById("leaderboard-sub-text");
+  const leaderboardSectionLabel = document.getElementById("leaderboard-section-label");
+  const myRankLabel = document.getElementById("my-rank-label");
   const myRankVal = document.getElementById("my-rank-val");
   const myPointsVal = document.getElementById("my-points-val");
   const mySolvedVal = document.getElementById("my-solved-val");
 
-  async function loadLeaderboard() {
+  function renderLeaderboardGradeChips() {
+    if (!leaderboardGradeChips) return;
+    leaderboardGradeChips.innerHTML = "";
+
+    for (let g = 1; g <= 11; g++) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = `grade-chip ${g === state.leaderboardGrade ? "active" : ""}`;
+      chip.textContent = g === 11 ? "11 клас (нмт)" : `${g} клас`;
+
+      chip.addEventListener("click", () => {
+        triggerHaptic("light");
+        setLeaderboardGrade(g);
+      });
+
+      leaderboardGradeChips.appendChild(chip);
+    }
+
+    setTimeout(() => {
+      const activeChip = leaderboardGradeChips.querySelector(".grade-chip.active");
+      if (activeChip) {
+        activeChip.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    }, 50);
+  }
+
+  function setLeaderboardGrade(grade) {
+    state.leaderboardGrade = grade;
+    renderLeaderboardGradeChips();
+    loadLeaderboard(grade);
+  }
+
+  async function loadLeaderboard(grade = null) {
     if (!leaderboardList) return;
+    const targetGrade = grade || state.leaderboardGrade || state.currentGrade || 7;
+    state.leaderboardGrade = targetGrade;
+
+    renderLeaderboardGradeChips();
     leaderboardList.innerHTML = '<div class="loading-state">завантаження рейтингу...</div>';
 
     try {
-      const data = await apiRequest("/leaderboard");
-      renderLeaderboard(data);
+      const data = await apiRequest(`/leaderboard?grade=${targetGrade}`);
+      renderLeaderboard(data, targetGrade);
     } catch (e) {
       console.warn("Could not load leaderboard:", e);
       leaderboardList.innerHTML = '<div class="loading-state">не вдалося завантажити рейтинг</div>';
     }
   }
 
-  function renderLeaderboard(data) {
+  function renderLeaderboard(data, grade) {
     const topUsers = data.top_users || [];
+    const gradeName = grade === 11 ? "11 класу (нмт)" : `${grade} класу`;
+    const gradeShort = grade === 11 ? "11 клас (нмт)" : `${grade} клас`;
 
-    if (myRankVal) myRankVal.textContent = data.current_user_rank > 0 ? `#${data.current_user_rank}` : "#—";
-    if (myPointsVal) myPointsVal.textContent = data.current_user_points || 0;
-    if (mySolvedVal) mySolvedVal.textContent = data.current_user_solved || 0;
+    if (leaderboardSubText) {
+      leaderboardSubText.textContent = `рейтинг за набраними балами серед учнів ${gradeName}`;
+    }
+    if (leaderboardSectionLabel) {
+      leaderboardSectionLabel.textContent = `результати (${gradeShort}):`;
+    }
+
+    const isUserInThisGrade = state.currentGrade === grade;
+    if (myRankLabel) {
+      myRankLabel.textContent = isUserInThisGrade ? "твоє місце:" : `місце в ${grade} кл.:`;
+    }
+    if (myRankVal) {
+      myRankVal.textContent = (isUserInThisGrade && data.current_user_rank > 0) ? `#${data.current_user_rank}` : "#—";
+    }
+    if (myPointsVal) {
+      myPointsVal.textContent = isUserInThisGrade ? (data.current_user_points || 0) : 0;
+    }
+    if (mySolvedVal) {
+      mySolvedVal.textContent = isUserInThisGrade ? (data.current_user_solved || 0) : 0;
+    }
 
     for (let place = 1; place <= 3; place++) {
       const user = topUsers[place - 1];
@@ -860,12 +922,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const listUsers = topUsers.length > 3 ? topUsers.slice(3) : [];
 
     if (topUsers.length === 0) {
-      leaderboardList.innerHTML = '<div class="loading-state">список лідерів формується! розв\'язуй завдання першим.</div>';
+      leaderboardList.innerHTML = `<div class="loading-state">список лідерів для ${gradeShort} ще формується! розв'яжи завдання першим.</div>`;
       return;
     }
 
     if (listUsers.length === 0) {
-      leaderboardList.innerHTML = '<div class="leaderboard-empty-tail">усі активні лідери зараз на подіумі вище!</div>';
+      leaderboardList.innerHTML = `<div class="leaderboard-empty-tail">усі активні лідери ${gradeShort} зараз на подіумі вище!</div>`;
       return;
     }
 
@@ -895,6 +957,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================
   updateHeroGreeting();
   renderGradeChips();
+  renderLeaderboardGradeChips();
   loadProfile(true).then(() => {
     loadTopics(state.currentGrade, state.currentGrade >= 7 ? state.currentSubject : null);
   });

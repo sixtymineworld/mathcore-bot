@@ -35,6 +35,7 @@ class LeaderboardUserItem(BaseModel):
 class LeaderboardResponse(BaseModel):
     """Відповідь з топом учнів та позицією поточного користувача."""
 
+    grade: int = Field(default=7, description="Клас рейтингу")
     top_users: list[LeaderboardUserItem] = Field(description="Список лідерів")
     current_user_rank: int = Field(default=0, description="Місце поточного користувача")
     current_user_points: int = Field(default=0, description="Бали поточного користувача")

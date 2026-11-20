@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, Message
 from app.bot.keyboards.inline import (
     get_grades_keyboard,
     get_home_keyboard,
+    get_leaderboard_grades_keyboard,
     get_leaderboard_keyboard,
     get_profile_keyboard,
     get_subjects_keyboard,
@@ -41,22 +42,22 @@ def format_profile_message(profile: dict, safe_name: str, footer_hint: str) -> s
     )
 
 
-def format_leaderboard_message(data: dict, safe_name: str) -> str:
-    """Форматує повідомлення рейтингу найкращих учнів."""
+def format_leaderboard_message(data: dict, safe_name: str, grade: int) -> str:
+    """Форматує повідомлення рейтингу найкращих учнів класу."""
     top_users = data.get("top_users", [])
     if not top_users:
         return (
-            "<b>топ найкращих учнів mathcore:</b>\n\n"
-            "список лідерів формується! розв'яжи своє перше завдання, щоб зайняти 1 місце в рейтингу."
+            f"<b>топ найкращих учнів ({grade} клас):</b>\n\n"
+            "список лідерів для цього класу ще формується!\n"
+            "розв'яжи завдання першим, щоб зайняти 1 місце в рейтингу свого класу."
         )
 
-    lines = ["<b>топ найкращих учнів mathcore:</b>\n"]
+    lines = [f"<b>топ найкращих учнів ({grade} клас):</b>\n"]
     for u in top_users[:10]:
-        grade_str = f" · {u['grade']} клас" if u.get("grade") else ""
         user_name = html.escape(u.get("first_name") or "учень").lower()
         marker = " (ти)" if u.get("is_current_user") else ""
         lines.append(
-            f"<b>{u['rank']}. {user_name}</b>{grade_str} — <b>{u['points']}</b> б. ({u['solved_tasks']} задач){marker}"
+            f"<b>{u['rank']}. {user_name}</b> — <b>{u['points']}</b> б. ({u['solved_tasks']} задач){marker}"
         )
 
     curr_rank = data.get("current_user_rank", 0)
@@ -65,9 +66,9 @@ def format_leaderboard_message(data: dict, safe_name: str) -> str:
 
     lines.append("\n━━━━━━━━━━━━━━━━━━")
     if curr_rank > 0:
-        lines.append(f"твоя позиція: <b>#{curr_rank}</b> · <b>{curr_pts}</b> б. ({curr_solved} розв'язаних задач)")
+        lines.append(f"твоя позиція серед {grade} класу: <b>#{curr_rank}</b> · <b>{curr_pts}</b> б. ({curr_solved} задач)")
     else:
-        lines.append("твоя позиція: ще не у рейтингу (розв'яжи завдання, щоб отримати бали)")
+        lines.append(f"твоя позиція: ще не в рейтингу {grade} класу (розв'яжи завдання для нарахування балів)")
 
     return "\n".join(lines)
 
@@ -264,28 +265,61 @@ async def handle_profile_callback(callback: CallbackQuery) -> None:
 
 @router.message(Command("top", "leaderboard"))
 async def handle_leaderboard_command(message: Message) -> None:
-    """Команда /top або /leaderboard для перегляду рейтингу учнів."""
+    """Команда /top або /leaderboard для перегляду рейтингу учнів за класом."""
     tg_user = message.from_user
     if not tg_user:
         return
 
     user = await TaskService.get_user_by_tg_id(tg_user.id)
-    grade = user.grade if user else None
-    data = await TaskService.get_leaderboard(current_tg_id=tg_user.id, limit=10)
+    grade = user.grade if user and user.grade else 7
+    data = await TaskService.get_leaderboard(current_tg_id=tg_user.id, grade=grade, limit=10)
     safe_name = html.escape(tg_user.first_name).lower()
-    text = format_leaderboard_message(data, safe_name)
+    text = format_leaderboard_message(data, safe_name, grade)
     await message.answer(text=text, reply_markup=get_leaderboard_keyboard(grade))
+
+
+@router.callback_query(F.data.startswith("lb_grade:"))
+async def handle_leaderboard_grade_callback(callback: CallbackQuery) -> None:
+    """Перегляд рейтингу для обраного класу."""
+    tg_user = callback.from_user
+    try:
+        grade = int(callback.data.split(":")[1])
+    except (IndexError, ValueError):
+        grade = 7
+
+    data = await TaskService.get_leaderboard(current_tg_id=tg_user.id, grade=grade, limit=10)
+    safe_name = html.escape(tg_user.first_name).lower()
+    text = format_leaderboard_message(data, safe_name, grade)
+    await callback.answer(f"топ для {grade} класу")
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(text=text, reply_markup=get_leaderboard_keyboard(grade))
+
+
+@router.callback_query(F.data.startswith("lb_select_grade"))
+async def handle_select_leaderboard_grade(callback: CallbackQuery) -> None:
+    """Вибір класу для перегляду рейтингу."""
+    try:
+        current_grade = int(callback.data.split(":")[1])
+    except (IndexError, ValueError):
+        current_grade = 7
+
+    await callback.answer()
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(
+            text="<b>вибери клас</b> для перегляду рейтингу:",
+            reply_markup=get_leaderboard_grades_keyboard(current_grade),
+        )
 
 
 @router.callback_query(F.data == "leaderboard")
 async def handle_leaderboard_callback(callback: CallbackQuery) -> None:
-    """Кнопка 'топ учнів'."""
+    """Кнопка 'топ учнів' (за замовчуванням клас користувача)."""
     tg_user = callback.from_user
     user = await TaskService.get_user_by_tg_id(tg_user.id)
-    grade = user.grade if user else None
-    data = await TaskService.get_leaderboard(current_tg_id=tg_user.id, limit=10)
+    grade = user.grade if user and user.grade else 7
+    data = await TaskService.get_leaderboard(current_tg_id=tg_user.id, grade=grade, limit=10)
     safe_name = html.escape(tg_user.first_name).lower()
-    text = format_leaderboard_message(data, safe_name)
+    text = format_leaderboard_message(data, safe_name, grade)
     await callback.answer()
     if isinstance(callback.message, Message):
         await callback.message.edit_text(text=text, reply_markup=get_leaderboard_keyboard(grade))
