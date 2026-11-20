@@ -654,8 +654,9 @@ document.addEventListener("DOMContentLoaded", () => {
       card.setAttribute("data-option", optText);
       card.setAttribute("data-letter", letter);
       card.innerHTML = `
-        <span class="quiz-option-letter">${letter}</span>
+        <span class="quiz-option-badge">${letter}</span>
         <span class="quiz-option-text">${formatMathText(optText)}</span>
+        <span class="material-symbols-outlined quiz-option-status-icon"></span>
       `;
       card.addEventListener("click", () => handleQuizOptionClick(card, optText));
       renderLatex(card);
@@ -666,11 +667,16 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleQuizOptionClick(selectedCard, chosenOption) {
     if (!state.currentTask || selectedCard.classList.contains("disabled")) return;
 
+    // Миттєва реакція: блокування інших кнопок, підсвітка та haptic
+    triggerHaptic("medium");
     const allCards = quizOptionsContainer ? quizOptionsContainer.querySelectorAll(".quiz-option-card") : [];
     allCards.forEach((c) => c.classList.add("disabled"));
     selectedCard.classList.add("selected");
 
-    triggerHaptic("medium");
+    const statusIcon = selectedCard.querySelector(".quiz-option-status-icon");
+    if (statusIcon) {
+      statusIcon.textContent = "hourglass_top";
+    }
 
     try {
       const result = await apiRequest(`/tasks/${state.currentTask.id}/check`, {
@@ -678,22 +684,38 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ answer: chosenOption }),
       });
 
+      selectedCard.classList.remove("selected");
+
       if (taskResultBox) taskResultBox.classList.remove("hidden");
       if (result.is_correct) {
         triggerHaptic("success");
-        selectedCard.classList.remove("selected");
         selectedCard.classList.add("correct");
+        if (statusIcon) statusIcon.textContent = "check_circle";
         if (taskResultBox) taskResultBox.className = "result-box correct";
         if (resultStatus) {
           resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> відповідь правильна!`;
         }
       } else {
         triggerHaptic("error");
-        selectedCard.classList.remove("selected");
         selectedCard.classList.add("incorrect");
+        if (statusIcon) statusIcon.textContent = "cancel";
         if (taskResultBox) taskResultBox.className = "result-box incorrect";
         if (resultStatus) {
           resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">refresh</span> спробуй ще раз`;
+        }
+
+        // Миттєво показуємо правильну відповідь учню
+        const corrAnswer = (result.correct_answer || state.currentTask.correct_answer || "").trim().toLowerCase();
+        if (corrAnswer) {
+          allCards.forEach((c) => {
+            const optVal = (c.getAttribute("data-option") || "").trim().toLowerCase();
+            const letVal = (c.getAttribute("data-letter") || "").trim().toLowerCase();
+            if (optVal === corrAnswer || letVal === corrAnswer) {
+              c.classList.add("correct-reveal");
+              const cIcon = c.querySelector(".quiz-option-status-icon");
+              if (cIcon) cIcon.textContent = "check_circle";
+            }
+          });
         }
       }
 
@@ -715,6 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       alert("помилка перевірки відповіді");
       allCards.forEach((c) => c.classList.remove("disabled", "selected"));
+      if (statusIcon) statusIcon.textContent = "";
     }
   }
 

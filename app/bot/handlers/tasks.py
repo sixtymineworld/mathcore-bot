@@ -328,20 +328,28 @@ async def handle_quiz_answer(callback: CallbackQuery, state: FSMContext) -> None
     topic = await TaskService.get_topic_by_id(task.topic_id)
     grade = topic.grade if topic else 5
 
-    await callback.answer(f"обрано варіант {letter}")
+    await callback.answer(f"обрано {letter}")
 
-    ai_checker = get_ai_checker()
-    result = await ai_checker.check_solution(
-        task_question=task.question_text,
-        user_answer=selected_option,
-        correct_answer=task.correct_answer,
-        grade=grade,
-    )
+    # Миттєва перевірка для квізу (без очікування мережевого виклику AI)
+    user_norm = selected_option.strip().lower()
+    corr_norm = (task.correct_answer or "").strip().lower()
+    let_norm = letter.strip().lower()
+
+    is_correct = (user_norm == corr_norm or let_norm == corr_norm)
+    if not is_correct and task.options:
+        letters = ["а", "б", "в", "г"]
+        for idx, opt in enumerate(task.options):
+            if idx < len(letters):
+                opt_letter = letters[idx]
+                opt_norm = opt.strip().lower()
+                if corr_norm in (opt_norm, opt_letter) and (user_norm == opt_norm or let_norm == opt_letter):
+                    is_correct = True
+                    break
 
     await TaskService.record_task_attempt(
         tg_id=callback.from_user.id,
         task_id=task.id,
-        is_correct=result.is_correct,
+        is_correct=is_correct,
         user_answer=selected_option,
     )
 
@@ -349,14 +357,20 @@ async def handle_quiz_answer(callback: CallbackQuery, state: FSMContext) -> None
 
     status_header = (
         "<b>правильно!</b>"
-        if result.is_correct
+        if is_correct
         else f"<b>неправильно.</b> твій вибір: <b>{letter}) {selected_option}</b>"
     )
 
-    sol_text = result.detailed_solution or task.detailed_solution or f"правильна відповідь: {task.correct_answer}."
+    feedback_text = (
+        "відповідь правильна! молодець, точний розв'язок."
+        if is_correct
+        else f"на жаль, вибір помилковий. правильна відповідь: {task.correct_answer}."
+    )
+
+    sol_text = task.detailed_solution or task.solution_hint or f"правильна відповідь: {task.correct_answer}."
     response_text = (
         f"{status_header}\n\n"
-        f"{result.feedback}\n\n"
+        f"{feedback_text}\n\n"
         f"<b>покроковий розв'язок:</b>\n{sol_text}\n\n"
         "що робимо далі? вибирай дію нижче:"
     )
@@ -366,7 +380,7 @@ async def handle_quiz_answer(callback: CallbackQuery, state: FSMContext) -> None
         current_task_id=task.id,
         topic_id=task.topic_id,
         grade=grade,
-        is_correct=result.is_correct,
+        is_correct=is_correct,
     )
 
     await state.clear()

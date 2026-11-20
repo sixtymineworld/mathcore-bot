@@ -95,6 +95,7 @@ class CheckAnswerResponse(BaseModel):
     explanation: str = Field(description="Пояснення або коментар AI")
     user_answer: str = Field(description="Оригінальна відповідь учня")
     detailed_solution: str | None = Field(default=None, description="Покроковий розв'язок задачі")
+    correct_answer: str | None = Field(default=None, description="Правильна відповідь для квізу")
 
 
 class HintResponse(BaseModel):

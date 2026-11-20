@@ -731,9 +731,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: rgba(181, 136, 92, 0.18);
-  color: #6e431f;
-  border: 1px solid rgba(181, 136, 92, 0.35);
+  background-color: rgba(201, 168, 136, 0.2);
+  color: var(--sand-light);
+  border: 1px solid rgba(201, 168, 136, 0.45);
   padding: 2px 8px;
   border-radius: 6px;
   font-family: var(--font-display);
@@ -745,7 +745,7 @@ body {
 
 .quiz-badge .quiz-icon {
   font-size: 13px !important;
-  color: #6e431f;
+  color: var(--sand-light);
 }
 
 /* Креслення / малюнок до задачі */
@@ -850,89 +850,71 @@ body {
 
 /* Секція квізу (вибір варіантів відповідей) */
 .task-quiz-section {
-  background: rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(201, 168, 136, 0.25);
-  border-radius: 16px;
-  padding: 16px 18px;
-  margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 6px;
 }
 
 .quiz-section-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--sand-soft);
-  font-size: 13px;
-}
-
-.quiz-section-header .quiz-icon {
-  font-size: 16px;
-  color: var(--blush);
+  justify-content: space-between;
+  margin-bottom: 2px;
 }
 
 .quiz-section-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sand-deep);
+  letter-spacing: 0.3px;
   text-transform: lowercase;
 }
 
-.quiz-section-sub {
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--sand-deep);
-  margin-left: auto;
-}
-
 .quiz-options-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-@media (max-width: 480px) {
-  .quiz-options-grid {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
 
 .quiz-option-card {
-  background: var(--sand-soft);
-  border: 1.5px solid var(--sand-deep);
-  border-radius: 14px;
-  padding: 12px 14px;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
+  width: 100%;
+  padding: 13px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(235, 214, 193, 0.16);
+  border-radius: 14px;
   cursor: pointer;
   text-align: left;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   outline: none;
-  color: var(--noir);
-  font-family: var(--font-sans);
   user-select: none;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, background-color 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
 }
 
 .quiz-option-card:hover:not(:disabled) {
-  border-color: var(--blush);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(181, 136, 92, 0.12);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(235, 214, 193, 0.32);
+  transform: translateY(-1px);
 }
 
 .quiz-option-card:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.985);
+  background: rgba(255, 255, 255, 0.14);
 }
 
-.quiz-option-letter {
+.quiz-option-badge {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: rgba(181, 136, 92, 0.2);
-  color: #5e3d23;
+  border-radius: 9px;
+  background: rgba(235, 214, 193, 0.12);
+  border: 1px solid rgba(235, 214, 193, 0.22);
+  color: var(--sand-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -940,50 +922,88 @@ body {
   font-weight: 800;
   font-size: 13px;
   flex-shrink: 0;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: all 0.12s ease;
 }
 
 .quiz-option-text {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--noir-deep);
+  flex: 1;
+  font-family: var(--font-math);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--sand-light);
+  line-height: 1.4;
   word-break: break-word;
 }
 
+.quiz-option-status-icon {
+  font-size: 20px !important;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+/* Миттєва реакція при натисканні (selected) */
 .quiz-option-card.selected {
-  border-color: #6e431f;
-  background: linear-gradient(180deg, #f0dfce 0%, var(--sand-soft) 100%);
+  background: rgba(201, 168, 136, 0.22) !important;
+  border-color: var(--sand-deep) !important;
+  box-shadow: 0 0 0 1px var(--sand-deep);
 }
 
+.quiz-option-card.selected .quiz-option-badge {
+  background: var(--sand-light) !important;
+  color: var(--noir-deep) !important;
+  border-color: var(--sand-light) !important;
+}
+
+/* Правильна відповідь */
 .quiz-option-card.correct {
-  border-color: #4a7c59 !important;
-  background: rgba(74, 124, 89, 0.12) !important;
+  background: rgba(74, 140, 92, 0.22) !important;
+  border-color: #6ab982 !important;
+  box-shadow: 0 0 0 1px #6ab982;
 }
 
-.quiz-option-card.correct .quiz-option-letter {
-  background: #4a7c59 !important;
+.quiz-option-card.correct .quiz-option-badge {
+  background: #509e66 !important;
   color: #ffffff !important;
+  border-color: #509e66 !important;
 }
 
+.quiz-option-card.correct .quiz-option-status-icon {
+  color: #72cf8c !important;
+}
+
+/* Неправильна відповідь */
 .quiz-option-card.incorrect {
-  border-color: #a34e4e !important;
-  background: rgba(163, 78, 78, 0.12) !important;
+  background: rgba(196, 92, 92, 0.22) !important;
+  border-color: #e07070 !important;
+  box-shadow: 0 0 0 1px #e07070;
 }
 
-.quiz-option-card.incorrect .quiz-option-letter {
-  background: #a34e4e !important;
+.quiz-option-card.incorrect .quiz-option-badge {
+  background: #c45454 !important;
   color: #ffffff !important;
+  border-color: #c45454 !important;
 }
 
+.quiz-option-card.incorrect .quiz-option-status-icon {
+  color: #f08282 !important;
+}
+
+/* Підсвітка правильної відповіді при помилці */
 .quiz-option-card.correct-reveal {
-  border-color: #4a7c59 !important;
+  border-color: #6ab982 !important;
   border-style: dashed !important;
+  background: rgba(74, 140, 92, 0.12) !important;
 }
 
-.quiz-option-card.correct-reveal .quiz-option-letter {
-  background: rgba(74, 124, 89, 0.25) !important;
-  color: #2b5536 !important;
+.quiz-option-card.correct-reveal .quiz-option-badge {
+  background: rgba(74, 140, 92, 0.35) !important;
+  color: #72cf8c !important;
+  border-color: #6ab982 !important;
+}
+
+.quiz-option-card.correct-reveal .quiz-option-status-icon {
+  color: #72cf8c !important;
 }
 
 .quiz-option-card:disabled {

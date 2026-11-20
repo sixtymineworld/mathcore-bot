@@ -77,7 +77,7 @@ async def check_task_solution(
     payload: CheckAnswerRequest,
     user: AuthenticatedUser = Depends(get_current_user),
 ) -> CheckAnswerResponse:
-    """Перевіряє відповідь учня за допомогою Gemini AI та зберігає спробу в аналітику."""
+    """Перевіряє відповідь учня за допомогою AI або миттєво для квізів та зберігає спробу в аналітику."""
     task = await TaskService.get_task_by_id(task_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Завдання не знайдено")
@@ -85,6 +85,44 @@ async def check_task_solution(
     topic = await TaskService.get_topic_by_id(task.topic_id)
     grade = topic.grade if topic else 7
 
+    # Миттєва перевірка для квізів (0 мс затримки, без очікування виклику AI)
+    if task.is_quiz and task.correct_answer:
+        user_norm = payload.answer.strip().lower()
+        corr_norm = task.correct_answer.strip().lower()
+
+        is_correct = (user_norm == corr_norm)
+        if not is_correct and task.options:
+            letters = ["а", "б", "в", "г"]
+            for idx, opt in enumerate(task.options):
+                if idx < len(letters):
+                    opt_letter = letters[idx]
+                    opt_norm = opt.strip().lower()
+                    if corr_norm in (opt_norm, opt_letter) and user_norm in (opt_norm, opt_letter):
+                        is_correct = True
+                        break
+
+        feedback = (
+            "відповідь правильна! молодець, обрано точний варіант."
+            if is_correct
+            else f"на жаль, вибір неправильний. правильна відповідь: {task.correct_answer}."
+        )
+
+        await TaskService.record_task_attempt(
+            tg_id=user.tg_id,
+            task_id=task.id,
+            is_correct=is_correct,
+            user_answer=payload.answer,
+        )
+
+        return CheckAnswerResponse(
+            is_correct=is_correct,
+            explanation=feedback,
+            user_answer=payload.answer,
+            detailed_solution=task.detailed_solution or task.solution_hint,
+            correct_answer=task.correct_answer,
+        )
+
+    # Для складніших відкритих завдань використовуємо AI перевірку
     ai_checker = get_ai_checker()
     result = await ai_checker.check_solution(
         task_question=task.question_text,
@@ -105,6 +143,7 @@ async def check_task_solution(
         explanation=result.feedback,
         user_answer=payload.answer,
         detailed_solution=result.detailed_solution or task.detailed_solution,
+        correct_answer=task.correct_answer,
     )
 
 
