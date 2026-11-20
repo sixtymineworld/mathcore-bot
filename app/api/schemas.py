@@ -62,6 +62,8 @@ class TopicResponse(BaseModel):
     section: str = "загальний розділ"
     order_num: int
     tasks_count: int = 0
+    solved_count: int = 0
+    is_completed: bool = False
 
 
 class TaskResponse(BaseModel):
@@ -77,6 +79,7 @@ class TaskResponse(BaseModel):
     diagram_svg: str | None = None
     is_nmt: bool = False
     is_solved: bool = False
+    user_answer: str | None = None
     is_quiz: bool = False
     options: list[str] | None = None
     detailed_solution: str | None = None

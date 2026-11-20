@@ -509,9 +509,17 @@ document.addEventListener("DOMContentLoaded", () => {
       secTopics.forEach((topic) => {
         const card = document.createElement("div");
         card.className = "topic-card";
+        const isSolved = Boolean(topic.is_completed || (topic.solved_count && topic.solved_count > 0) || localStorage.getItem(`mathcore_topic_solved_${topic.id}`));
+        const solvedBadge = isSolved
+          ? `<span class="topic-solved-badge"><span class="material-symbols-outlined" style="font-size: 13px;">check_circle</span>розв'язано</span>`
+          : "";
+
         card.innerHTML = `
           <div class="topic-card-header">
-            <div class="topic-title">${escapeHtml(topic.title)}</div>
+            <div class="topic-title-wrap">
+              <div class="topic-title">${escapeHtml(topic.title)}</div>
+              ${solvedBadge}
+            </div>
             <span class="material-symbols-outlined topic-arrow">arrow_forward</span>
           </div>
           <div class="topic-desc">${escapeHtml(topic.description || "натисніть, щоб розв'язувати завдання")}</div>
@@ -537,6 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const taskTitle = document.getElementById("task-title");
   const taskNmtBadge = document.getElementById("task-nmt-badge");
   const taskQuizBadge = document.getElementById("task-quiz-badge");
+  const taskSolvedBadge = document.getElementById("task-solved-badge");
   const taskDifficulty = document.getElementById("task-difficulty");
   const taskDiagram = document.getElementById("task-diagram");
   const taskQuestion = document.getElementById("task-question");
@@ -580,7 +589,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadOrGenerateTask(topicId) {
     resetTaskUI();
-    // Кожного разу генеруємо нове завдання за обраною темою
+    if (taskQuestion) taskQuestion.innerHTML = "<i>завантаження завдання...</i>";
+
+    try {
+      // 1. Спочатку перевіряємо збережені завдання теми
+      const tasks = await apiRequest(`/topics/${topicId}/tasks`);
+      if (tasks && tasks.length > 0) {
+        // Шукаємо перше нерозв'язане завдання
+        const unsolved = tasks.find((t) => !t.is_solved);
+        if (unsolved) {
+          displayTask(unsolved);
+          return;
+        }
+        // Якщо всі наявні завдання теми розв'язані, показуємо останнє із зарахованою відповіддю
+        const lastTask = tasks[tasks.length - 1];
+        displayTask(lastTask);
+        return;
+      }
+    } catch (e) {
+      console.warn("Could not fetch topic tasks, generating new:", e);
+    }
+
+    // 2. Якщо в темі ще немає завдань — генеруємо нове
     await generateNewTask(topicId);
   }
 
@@ -611,6 +641,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Відображення статусу розв'язаного завдання
+    if (taskSolvedBadge) {
+      if (task.is_solved) {
+        taskSolvedBadge.classList.remove("hidden");
+      } else {
+        taskSolvedBadge.classList.add("hidden");
+      }
+    }
+
     // Відображення векторного малюнка / креслення
     if (taskDiagram) {
       if (task.diagram_svg && task.diagram_svg.trim().startsWith("<svg")) {
@@ -637,6 +676,25 @@ document.addEventListener("DOMContentLoaded", () => {
       if (taskQuizBadge) taskQuizBadge.classList.add("hidden");
       if (taskQuizSection) taskQuizSection.classList.add("hidden");
       if (taskInputSection) taskInputSection.classList.remove("hidden");
+    }
+
+    // Якщо це завдання вже було успішно розв'язано в цій сесії
+    if (task.is_solved && taskResultBox) {
+      taskResultBox.classList.remove("hidden");
+      taskResultBox.className = "result-box correct";
+      if (resultStatus) {
+        resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> це завдання вже розв'язано!`;
+      }
+      if (resultExplanation) {
+        resultExplanation.innerHTML = `твоя збережена відповідь: <b>${escapeHtml(task.user_answer || "правильно")}</b>`;
+      }
+      const solution = task.detailed_solution;
+      if (solution && btnToggleSolution && taskSolutionBox) {
+        formatAndDisplayMath(taskSolutionText, solution);
+        btnToggleSolution.classList.remove("hidden");
+        btnToggleSolution.innerHTML = `<span class="material-symbols-outlined" style="font-size: 15px;">menu_book</span><span>покроковий розв'язок</span><span>↓</span>`;
+        taskSolutionBox.classList.add("hidden");
+      }
     }
   }
 
@@ -695,6 +753,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (resultStatus) {
           resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> відповідь правильна!`;
         }
+        if (state.currentTask) {
+          state.currentTask.is_solved = true;
+          state.currentTask.user_answer = chosenOption;
+        }
+        if (taskSolvedBadge) taskSolvedBadge.classList.remove("hidden");
+        if (state.currentTopic) {
+          localStorage.setItem(`mathcore_topic_solved_${state.currentTopic.id}`, "true");
+        }
+        loadProfile(false).catch(() => {});
       } else {
         triggerHaptic("error");
         selectedCard.classList.add("incorrect");
@@ -754,6 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (taskNmtBadge) taskNmtBadge.classList.add("hidden");
     if (taskQuizBadge) taskQuizBadge.classList.add("hidden");
+    if (taskSolvedBadge) taskSolvedBadge.classList.add("hidden");
     if (taskQuizSection) taskQuizSection.classList.add("hidden");
     if (taskInputSection) taskInputSection.classList.remove("hidden");
     if (quizOptionsContainer) quizOptionsContainer.innerHTML = "";
@@ -787,6 +855,15 @@ document.addEventListener("DOMContentLoaded", () => {
           triggerHaptic("success");
           taskResultBox.className = "result-box correct";
           resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> відповідь правильна!`;
+          if (state.currentTask) {
+            state.currentTask.is_solved = true;
+            state.currentTask.user_answer = answer;
+          }
+          if (taskSolvedBadge) taskSolvedBadge.classList.remove("hidden");
+          if (state.currentTopic) {
+            localStorage.setItem(`mathcore_topic_solved_${state.currentTopic.id}`, "true");
+          }
+          loadProfile(false).catch(() => {});
         } else {
           triggerHaptic("error");
           taskResultBox.className = "result-box incorrect";

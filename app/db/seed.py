@@ -9,35 +9,34 @@ logger = logging.getLogger(__name__)
 
 
 async def seed_initial_data() -> None:
-    """Заповнює або синхронізує навчальну програму з JSON-фікстур (data/curriculum/)."""
+    """Заповнює або синхронізує навчальну програму з JSON-фікстур без видалення даних користувачів."""
     curriculum = load_curriculum()
     if not curriculum:
         logger.warning("навчальна програма порожня, перевірте файли в data/curriculum/")
         return
 
     async with get_session() as session:
-        count = (await session.execute(select(func.count(Topic.id)))).scalar() or 0
-        if count == len(curriculum):
-            logger.info("навчальну програму з JSON вже синхронізовано (%d тем).", count)
-            return
+        # Отримуємо наявні теми за (grade, title)
+        existing_res = await session.execute(select(Topic.grade, Topic.title))
+        existing_set = {(row[0], row[1]) for row in existing_res.all()}
 
-        if count > 0:
-            logger.info("оновлення структури навчальної програми (%d -> %d тем)...", count, len(curriculum))
-            await session.execute(delete(UserTaskAttempt))
-            await session.execute(delete(Task))
-            await session.execute(delete(Topic))
-            await session.flush()
-
-        logger.info("імпорт структурованої програми (%d тем для 1–11 класів)...", len(curriculum))
+        new_topics = []
         for t in curriculum:
-            session.add(Topic(
-                grade=t["grade"],
-                subject=t.get("subject", "математика"),
-                section=t.get("section", "загальний розділ"),
-                title=t["title"],
-                description=t.get("description"),
-                order_num=t["order_num"],
-            ))
+            key = (t["grade"], t["title"])
+            if key not in existing_set:
+                new_topics.append(Topic(
+                    grade=t["grade"],
+                    subject=t.get("subject", "математика"),
+                    section=t.get("section", "загальний розділ"),
+                    title=t["title"],
+                    description=t.get("description"),
+                    order_num=t["order_num"],
+                ))
+                existing_set.add(key)
 
-        await session.commit()
-        logger.info("базу даних успішно синхронізовано: %d тем!", len(curriculum))
+        if new_topics:
+            session.add_all(new_topics)
+            await session.commit()
+            logger.info("синхронізація: додано %d нових тем до програми.", len(new_topics))
+        else:
+            logger.info("навчальну програму вже повністю синхронізовано (%d тем).", len(existing_set))

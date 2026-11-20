@@ -22,6 +22,57 @@ class TaskService:
             return list(result.scalars().all())
 
     @staticmethod
+    async def get_topics_with_progress(
+        grade: int,
+        subject: str | None = None,
+        tg_id: int | None = None,
+    ) -> list[dict]:
+        """Повертає теми з прогресом розв'язання учнем."""
+        async with get_session() as session:
+            stmt = select(Topic).where(Topic.grade == grade)
+            if subject:
+                stmt = stmt.where(Topic.subject == subject.strip().lower())
+            topics = list((await session.execute(stmt.order_by(Topic.order_num, Topic.id))).scalars().all())
+
+            solved_map: dict[int, int] = {}
+            if tg_id:
+                user = (await session.execute(select(User).where(User.tg_id == tg_id))).scalar_one_or_none()
+                if user:
+                    solved_stmt = (
+                        select(Task.topic_id, func.count(func.distinct(Task.id)))
+                        .join(UserTaskAttempt, UserTaskAttempt.task_id == Task.id)
+                        .where(UserTaskAttempt.user_id == user.id, UserTaskAttempt.is_correct.is_(True))
+                        .group_by(Task.topic_id)
+                    )
+                    solved_rows = (await session.execute(solved_stmt)).all()
+                    solved_map = {row[0]: row[1] for row in solved_rows}
+
+            tasks_count_stmt = (
+                select(Task.topic_id, func.count(Task.id))
+                .group_by(Task.topic_id)
+            )
+            tasks_count_rows = (await session.execute(tasks_count_stmt)).all()
+            tasks_map = {row[0]: row[1] for row in tasks_count_rows}
+
+            result = []
+            for t in topics:
+                t_count = tasks_map.get(t.id, 0)
+                s_count = solved_map.get(t.id, 0)
+                result.append({
+                    "id": t.id,
+                    "title": t.title,
+                    "description": t.description,
+                    "grade": t.grade,
+                    "subject": t.subject,
+                    "section": t.section,
+                    "order_num": t.order_num,
+                    "tasks_count": t_count,
+                    "solved_count": s_count,
+                    "is_completed": s_count > 0,
+                })
+            return result
+
+    @staticmethod
     async def get_topic_by_id(topic_id: int) -> Topic | None:
         """Отримує тему за її ID."""
         async with get_session() as session:
@@ -33,6 +84,42 @@ class TaskService:
         async with get_session() as session:
             stmt = select(Task).where(Task.topic_id == topic_id).order_by(Task.difficulty, Task.id)
             return list((await session.execute(stmt)).scalars().all())
+
+    @staticmethod
+    async def get_topic_tasks_for_user(topic_id: int, tg_id: int | None = None) -> list[dict]:
+        """Отримує завдання теми з інформацією про те, чи розв'язав їх учень."""
+        async with get_session() as session:
+            stmt = select(Task).where(Task.topic_id == topic_id).order_by(Task.id)
+            tasks = list((await session.execute(stmt)).scalars().all())
+
+            solved_map: dict[int, str] = {}
+            if tg_id:
+                user = (await session.execute(select(User).where(User.tg_id == tg_id))).scalar_one_or_none()
+                if user:
+                    attempts_stmt = (
+                        select(UserTaskAttempt.task_id, UserTaskAttempt.user_answer)
+                        .where(UserTaskAttempt.user_id == user.id, UserTaskAttempt.is_correct.is_(True))
+                    )
+                    attempts_rows = (await session.execute(attempts_stmt)).all()
+                    solved_map = {row[0]: row[1] for row in attempts_rows}
+
+            res = []
+            for t in tasks:
+                res.append({
+                    "id": t.id,
+                    "topic_id": t.topic_id,
+                    "title": t.title,
+                    "question_text": t.question_text,
+                    "difficulty": t.difficulty,
+                    "diagram_svg": t.diagram_svg,
+                    "is_nmt": t.is_nmt,
+                    "is_solved": t.id in solved_map,
+                    "user_answer": solved_map.get(t.id),
+                    "is_quiz": t.is_quiz,
+                    "options": t.options,
+                    "detailed_solution": t.detailed_solution,
+                })
+            return res
 
     @staticmethod
     async def get_task_by_id(task_id: int) -> Task | None:
@@ -126,7 +213,9 @@ class TaskService:
         async with get_session() as session:
             user = (await session.execute(select(User).where(User.tg_id == tg_id))).scalar_one_or_none()
             if not user:
-                return None
+                user = User(tg_id=tg_id, first_name="учень", grade=7)
+                session.add(user)
+                await session.flush()
 
             attempt = UserTaskAttempt(
                 user_id=user.id,

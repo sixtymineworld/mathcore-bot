@@ -24,14 +24,14 @@ router = APIRouter()
 )
 async def get_tasks_by_topic(
     topic_id: int,
-    _user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
 ) -> list[TaskResponse]:
-    """Повертає список математичних завдань для вказаної теми."""
+    """Повертає список математичних завдань для вказаної теми з персональним статусом розв'язання."""
     topic = await TaskService.get_topic_by_id(topic_id)
     if not topic:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Тему не знайдено")
-    tasks = await TaskService.get_tasks_by_topic(topic_id)
-    return [TaskResponse.model_validate(t) for t in tasks]
+    tasks = await TaskService.get_topic_tasks_for_user(topic_id, tg_id=user.tg_id)
+    return [TaskResponse(**t) for t in tasks]
 
 
 @router.get(
