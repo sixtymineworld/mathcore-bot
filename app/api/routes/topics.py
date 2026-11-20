@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
-from app.api.auth import AuthenticatedUser, get_current_user
 from app.api.schemas import TopicResponse
 from app.services.task_service import TaskService
 
@@ -17,7 +16,6 @@ async def get_grades() -> list[int]:
 async def get_topics_by_grade(
     grade: int,
     subject: str | None = None,
-    _user: AuthenticatedUser = Depends(get_current_user),
 ) -> list[TopicResponse]:
     """Повертає теми з математики для вказаного класу (1–11) з можливістю фільтрації за предметом."""
     if not 1 <= grade <= 11:
@@ -32,7 +30,6 @@ async def get_topics_by_grade(
 @router.get("/{topic_id}", response_model=TopicResponse, summary="Отримати деталі теми")
 async def get_topic_by_id(
     topic_id: int,
-    _user: AuthenticatedUser = Depends(get_current_user),
 ) -> TopicResponse:
     """Повертає інформацію про конкретну навчальну тему за ID."""
     topic = await TaskService.get_topic_by_id(topic_id)

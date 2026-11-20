@@ -105,6 +105,7 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict | None:
 
 
 async def get_current_user(
+    response: Response,
     authorization: Annotated[str | None, Header(description="Заголовок 'tma <initData>' або 'Bearer <token>'")] = None,
     init_data_query: Annotated[str | None, Query(alias="initData", description="initData як query param")] = None,
     token_query: Annotated[str | None, Query(alias="token", description="Токен сесії у query param")] = None,
@@ -115,44 +116,8 @@ async def get_current_user(
     init_data_cookie: Annotated[str | None, Cookie(alias="mathcore_init_data", description="Кукі initData")] = None,
     dev_user_id: Annotated[int | None, Header(alias="X-Dev-User-Id", description="ID для розробки (тільки при DEBUG=True)")] = None,
 ) -> AuthenticatedUser:
-    """FastAPI Dependency для перевірки авторизації користувача через токен сесії, Telegram WebApp або кукі."""
-    # 1. Перевірка підписаного токена сесії (Query param, Header, Cookie або Bearer Auth)
-    bearer_token = None
-    if authorization and authorization.lower().startswith("bearer "):
-        bearer_token = authorization[7:].strip()
-
-    token_candidate = (
-        token_query
-        or session_token_query
-        or session_token_header
-        or bearer_token
-        or session_cookie
-    )
-
-    if token_candidate:
-        token_clean = urllib.parse.unquote(token_candidate).strip()
-        tg_id = verify_session_token(token_clean)
-        if tg_id:
-            user = await TaskService.get_user_by_tg_id(tg_id)
-            if user:
-                return AuthenticatedUser(
-                    tg_id=user.tg_id,
-                    first_name=user.first_name,
-                    username=user.username,
-                )
-            # Якщо користувач валідно підписаний ключем бота, але ще відсутній у базі
-            new_user = await TaskService.upsert_user(
-                tg_id=tg_id,
-                first_name="учень",
-                grade=7,
-            )
-            return AuthenticatedUser(
-                tg_id=new_user.tg_id,
-                first_name=new_user.first_name,
-                username=new_user.username,
-            )
-
-    # 2. Перевірка рядка Telegram initData
+    """FastAPI Dependency для перевірки авторизації користувача через Telegram WebApp, токен сесії або кукі."""
+    # 1. Пріоритетна перевірка рядка Telegram initData (активна сесія з клієнта Telegram)
     init_data = None
     if authorization:
         if authorization.lower().startswith("tma "):
@@ -174,18 +139,57 @@ async def get_current_user(
                 username = user_dict.get("username")
 
                 if tg_id:
-                    await TaskService.upsert_user(
+                    user = await TaskService.upsert_user(
                         tg_id=tg_id,
                         first_name=first_name,
                         username=username,
                     )
+                    set_session_cookie(response, tg_id)
                     return AuthenticatedUser(
-                        tg_id=tg_id,
-                        first_name=first_name,
-                        username=username,
+                        tg_id=user.tg_id,
+                        first_name=user.first_name,
+                        username=user.username,
                     )
             except Exception as e:
                 logger.error("Помилка розбору об'єкта user з initData: %s", e)
+
+    # 2. Перевірка підписаного токена сесії (Query param, Header, Cookie або Bearer Auth)
+    bearer_token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        bearer_token = authorization[7:].strip()
+
+    token_candidate = (
+        token_query
+        or session_token_query
+        or session_token_header
+        or bearer_token
+        or session_cookie
+    )
+
+    if token_candidate:
+        token_clean = urllib.parse.unquote(token_candidate).strip()
+        tg_id = verify_session_token(token_clean)
+        if tg_id:
+            user = await TaskService.get_user_by_tg_id(tg_id)
+            if user:
+                set_session_cookie(response, user.tg_id)
+                return AuthenticatedUser(
+                    tg_id=user.tg_id,
+                    first_name=user.first_name,
+                    username=user.username,
+                )
+            # Якщо користувач валідно підписаний ключем бота, але ще відсутній у базі
+            new_user = await TaskService.upsert_user(
+                tg_id=tg_id,
+                first_name="учень",
+                grade=7,
+            )
+            set_session_cookie(response, new_user.tg_id)
+            return AuthenticatedUser(
+                tg_id=new_user.tg_id,
+                first_name=new_user.first_name,
+                username=new_user.username,
+            )
 
     # 3. Режим розробки / налагодження: підтримка прямого tg_id або fallback
     if settings.DEBUG:
@@ -198,6 +202,7 @@ async def get_current_user(
                 username="test_user",
                 grade=11 if test_tg_id == 1351269080 else 7,
             )
+        set_session_cookie(response, test_tg_id)
         return AuthenticatedUser(
             tg_id=test_tg_id,
             first_name=test_user.first_name if test_user else "учень",

@@ -118,12 +118,18 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     let url = `/api/v1${endpoint}`;
-    if (sessionToken && !url.includes("token=")) {
-      const sep = url.includes("?") ? "&" : "?";
-      url += `${sep}session_token=${encodeURIComponent(sessionToken)}`;
-      if (tgId) {
-        url += `&tg_id=${encodeURIComponent(tgId)}`;
-      }
+    const queryParts = [];
+    if (sessionToken && !url.includes("session_token=") && !url.includes("token=")) {
+      queryParts.push(`session_token=${encodeURIComponent(sessionToken)}`);
+    }
+    if (tgId && !url.includes("tg_id=")) {
+      queryParts.push(`tg_id=${encodeURIComponent(tgId)}`);
+    }
+    if (initData && !url.includes("initData=")) {
+      queryParts.push(`initData=${encodeURIComponent(initData)}`);
+    }
+    if (queryParts.length > 0) {
+      url += (url.includes("?") ? "&" : "?") + queryParts.join("&");
     }
 
     try {
@@ -151,7 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(`API Error on ${endpoint}:`, err);
       throw err;
     }
-  }
   }
 
   // Перетворення та рендеринг тексту з формулами та HTML
