@@ -897,49 +897,58 @@ document.addEventListener("DOMContentLoaded", () => {
       mySolvedVal.textContent = isUserInThisGrade ? (data.current_user_solved || 0) : 0;
     }
 
-    for (let place = 1; place <= 3; place++) {
-      const user = topUsers[place - 1];
-      const nameEl = document.getElementById(`podium-name-${place}`);
-      const pointsEl = document.getElementById(`podium-points-${place}`);
-      const gradeEl = document.getElementById(`podium-grade-${place}`);
-      const avatarEl = document.getElementById(`podium-avatar-${place}`);
+    const hasLeaders = topUsers.length > 0;
+    const podiumWrapper = document.getElementById("podium-wrapper");
 
-      if (user) {
-        const uName = (user.first_name || "учень").toLowerCase();
-        if (nameEl) nameEl.textContent = uName;
-        if (pointsEl) pointsEl.textContent = `${user.points} б.`;
-        if (gradeEl) gradeEl.textContent = user.grade ? `${user.grade} клас` : "";
-        if (avatarEl) avatarEl.textContent = uName.charAt(0);
+    if (podiumWrapper) {
+      if (!hasLeaders) {
+        podiumWrapper.classList.add("hidden");
       } else {
-        if (nameEl) nameEl.textContent = "—";
-        if (pointsEl) pointsEl.textContent = "0 б.";
-        if (gradeEl) gradeEl.textContent = "";
-        if (avatarEl) avatarEl.textContent = place.toString();
+        podiumWrapper.classList.remove("hidden");
+        for (let place = 1; place <= 3; place++) {
+          const user = topUsers[place - 1];
+          const card = document.getElementById(`podium-${place}`);
+          const nameEl = document.getElementById(`podium-name-${place}`);
+          const pointsEl = document.getElementById(`podium-points-${place}`);
+          const tasksEl = document.getElementById(`podium-tasks-${place}`);
+          const avatarEl = document.getElementById(`podium-avatar-${place}`);
+
+          if (user) {
+            const uName = (user.first_name || "учень").toLowerCase();
+            if (nameEl) nameEl.textContent = uName;
+            if (pointsEl) pointsEl.textContent = `${user.points} б.`;
+            if (tasksEl) tasksEl.textContent = `${user.solved_tasks} задач`;
+            if (avatarEl) avatarEl.textContent = uName.charAt(0);
+            if (card) card.style.opacity = "1";
+          } else {
+            if (nameEl) nameEl.textContent = "—";
+            if (pointsEl) pointsEl.textContent = "0 б.";
+            if (tasksEl) tasksEl.textContent = "0 задач";
+            if (avatarEl) avatarEl.textContent = place.toString();
+            if (card) card.style.opacity = "0.35";
+          }
+        }
       }
     }
 
+    // Відразу виводимо всіх користувачів на таблицю
     leaderboardList.innerHTML = "";
-    const listUsers = topUsers.length > 3 ? topUsers.slice(3) : [];
 
-    if (topUsers.length === 0) {
+    if (!hasLeaders) {
       leaderboardList.innerHTML = `<div class="loading-state">список лідерів для ${gradeShort} ще формується! розв'яжи завдання першим.</div>`;
       return;
     }
 
-    if (listUsers.length === 0) {
-      leaderboardList.innerHTML = `<div class="leaderboard-empty-tail">усі активні лідери ${gradeShort} зараз на подіумі вище!</div>`;
-      return;
-    }
-
-    listUsers.forEach((u) => {
+    topUsers.forEach((u) => {
       const row = document.createElement("div");
       row.className = `leaderboard-item ${u.is_current_user ? "current-user" : ""}`;
       const uName = escapeHtml((u.first_name || "учень").toLowerCase());
       const gradeStr = u.grade ? `${u.grade} клас` : "гість";
+      const rankTagClass = u.rank === 1 ? "rank-gold" : u.rank === 2 ? "rank-silver" : u.rank === 3 ? "rank-bronze" : "";
 
       row.innerHTML = `
         <div class="item-left">
-          <span class="item-rank-num">#${u.rank}</span>
+          <span class="item-rank-num ${rankTagClass}">#${u.rank}</span>
           <div class="item-avatar">${uName.charAt(0)}</div>
           <div class="item-info">
             <div class="item-name">${uName}${u.is_current_user ? ' <span class="you-badge">(ти)</span>' : ""}</div>
