@@ -22,7 +22,12 @@ logger = logging.getLogger(__name__)
 router = Router(name="tasks")
 
 
-def render_task_view(task: "Task", topic_title: str, grade: int) -> tuple[str, object]:
+def render_task_view(
+    task: "Task",
+    topic_title: str,
+    grade: int,
+    tg_id: int | None = None,
+) -> tuple[str, object]:
     """Формує текст повідомлення та клавіатуру для перегляду завдання."""
     stars = f"{max(1, min(task.difficulty, 3))}/3"
     nmt_badge = " [формат нмт]" if task.is_nmt else ""
@@ -43,6 +48,7 @@ def render_task_view(task: "Task", topic_title: str, grade: int) -> tuple[str, o
         topic_id=task.topic_id,
         grade=grade,
         has_diagram=bool(task.diagram_svg),
+        tg_id=tg_id,
     )
     return text, keyboard
 
@@ -73,7 +79,7 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
         detailed_solution=generated.detailed_solution,
     )
 
-    text, markup = render_task_view(task, topic.title, topic.grade)
+    text, markup = render_task_view(task, topic.title, topic.grade, tg_id=callback.from_user.id)
     if isinstance(callback.message, Message):
         await callback.message.edit_text(text=text, reply_markup=markup)
 
@@ -92,14 +98,15 @@ async def handle_back_to_topics(callback: CallbackQuery, state: FSMContext) -> N
 
     await state.set_state(UserState.viewing_topics)
     await callback.answer()
+    tg_id = callback.from_user.id
 
     if grade >= 7:
         text = f"<b>{grade} клас</b>\n\nвибери предмет (алгебра або геометрія), щоб відкрити його розділи:"
-        reply_markup = get_subjects_keyboard(grade)
+        reply_markup = get_subjects_keyboard(grade, tg_id=tg_id)
     else:
         topics = await TaskService.get_topics_by_grade(grade)
         text = f"<b>навчальні розділи та теми для {grade} класу:</b>\nвибери тему для тренування:"
-        reply_markup = get_topics_keyboard(topics, grade)
+        reply_markup = get_topics_keyboard(topics, grade, tg_id=tg_id)
 
     if isinstance(callback.message, Message):
         await callback.message.edit_text(text=text, reply_markup=reply_markup)
@@ -153,7 +160,7 @@ async def handle_task_view(callback: CallbackQuery, state: FSMContext) -> None:
     topic_title = topic.title if topic else "математика"
 
     await callback.answer()
-    text, markup = render_task_view(task, topic_title, grade)
+    text, markup = render_task_view(task, topic_title, grade, tg_id=callback.from_user.id)
     if isinstance(callback.message, Message):
         await callback.message.edit_text(text=text, reply_markup=markup)
 

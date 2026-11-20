@@ -11,6 +11,7 @@ import uvicorn
 
 from app.api.app import app as fastapi_app
 from app.bot.handlers import common_router, tasks_router
+from app.bot.keyboards.inline import get_webapp_url
 from app.config import settings
 from app.db.base import async_engine, init_db
 
@@ -34,15 +35,16 @@ async def on_startup(bot: Bot) -> None:
         BotCommand(command="start", description="вибір класу та головне меню"),
     ])
 
-    if settings.WEB_APP_URL:
+    menu_url = get_webapp_url()
+    if menu_url:
         try:
             await bot.set_chat_menu_button(
                 menu_button=MenuButtonWebApp(
                     text="застосунок",
-                    web_app=WebAppInfo(url=settings.WEB_APP_URL),
+                    web_app=WebAppInfo(url=menu_url),
                 )
             )
-            logger.info("меню webapp: %s", settings.WEB_APP_URL)
+            logger.info("меню webapp: %s", menu_url)
         except Exception as e:
             logger.warning("не вдалося встановити кнопку меню webapp: %s", e)
 

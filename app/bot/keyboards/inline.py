@@ -2,34 +2,49 @@ from typing import TYPE_CHECKING
 from aiogram.types import InlineKeyboardMarkup, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from app.api.auth import create_session_token
 from app.config import settings
 
 if TYPE_CHECKING:
     from app.db.models import Topic
 
 
-def _add_webapp_button(builder: InlineKeyboardBuilder) -> None:
-    if settings.WEB_APP_URL:
-        builder.button(text="відкрити застосунок", web_app=WebAppInfo(url=settings.WEB_APP_URL))
+def get_webapp_url(tg_id: int | None = None) -> str | None:
+    """Формує прямий URL до Telegram WebApp із персональним токеном сесії."""
+    if not settings.WEB_APP_URL:
+        return None
+    base = settings.WEB_APP_URL.rstrip("/")
+    url = f"{base}/" if base.endswith("/app") else f"{base}/app/"
+    if tg_id:
+        token = create_session_token(tg_id)
+        sep = "&" if "?" in url else "?"
+        return f"{url}{sep}tg_id={tg_id}&token={token}"
+    return url
 
 
-def get_grades_keyboard() -> InlineKeyboardMarkup:
+def _add_webapp_button(builder: InlineKeyboardBuilder, tg_id: int | None = None) -> None:
+    url = get_webapp_url(tg_id)
+    if url:
+        builder.button(text="відкрити застосунок", web_app=WebAppInfo(url=url))
+
+
+def get_grades_keyboard(tg_id: int | None = None) -> InlineKeyboardMarkup:
     """Генерує інлайн-клавіатуру для вибору класу (1–11 класи)."""
     builder = InlineKeyboardBuilder()
     for grade in range(1, 12):
         builder.button(text=f"{grade} клас", callback_data=f"grade:{grade}")
     if settings.WEB_APP_URL:
-        _add_webapp_button(builder)
+        _add_webapp_button(builder, tg_id=tg_id)
         builder.adjust(4, 4, 3, 1)
     else:
         builder.adjust(4, 4, 3)
     return builder.as_markup()
 
 
-def get_home_keyboard(grade: int) -> InlineKeyboardMarkup:
+def get_home_keyboard(grade: int, tg_id: int | None = None) -> InlineKeyboardMarkup:
     """Генерує головне меню для поверненого користувача зі збереженою сесією."""
     builder = InlineKeyboardBuilder()
-    _add_webapp_button(builder)
+    _add_webapp_button(builder, tg_id=tg_id)
     builder.button(text=f"навчальні теми ({grade} клас)", callback_data=f"topics_list:{grade}")
     builder.button(text="топ учнів", callback_data=f"lb_grade:{grade}")
     builder.button(text="профіль та успішність", callback_data="my_profile")
@@ -37,12 +52,12 @@ def get_home_keyboard(grade: int) -> InlineKeyboardMarkup:
     return builder.adjust(1).as_markup()
 
 
-def get_subjects_keyboard(grade: int) -> InlineKeyboardMarkup:
+def get_subjects_keyboard(grade: int, tg_id: int | None = None) -> InlineKeyboardMarkup:
     """Генерує клавіатуру вибору предмета (алгебра / геометрія) для 7–11 класів."""
     builder = InlineKeyboardBuilder()
     builder.button(text="алгебра", callback_data=f"subject:{grade}:алгебра")
     builder.button(text="геометрія", callback_data=f"subject:{grade}:геометрія")
-    _add_webapp_button(builder)
+    _add_webapp_button(builder, tg_id=tg_id)
     builder.button(text="змінити клас", callback_data="change_grade")
     return builder.adjust(2, 1, 1).as_markup() if settings.WEB_APP_URL else builder.adjust(2, 1).as_markup()
 
@@ -51,6 +66,7 @@ def get_topics_keyboard(
     topics: list["Topic"],
     grade: int,
     subject: str | None = None,
+    tg_id: int | None = None,
 ) -> InlineKeyboardMarkup:
     """Генерує клавіатуру списку тем для обраного класу."""
     builder = InlineKeyboardBuilder()
@@ -61,17 +77,17 @@ def get_topics_keyboard(
         other_subj = "геометрія" if subject == "алгебра" else "алгебра"
         builder.button(text=f"перейти до: {other_subj}", callback_data=f"subject:{grade}:{other_subj}")
 
-    _add_webapp_button(builder)
+    _add_webapp_button(builder, tg_id=tg_id)
     builder.button(text="топ учнів", callback_data=f"lb_grade:{grade}")
     builder.button(text="профіль та успішність", callback_data="my_profile")
     builder.button(text="змінити клас", callback_data="change_grade")
     return builder.adjust(1).as_markup()
 
 
-def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
+def get_profile_keyboard(grade: int | None = None, tg_id: int | None = None) -> InlineKeyboardMarkup:
     """Генерує кнопки для екрана профілю."""
     builder = InlineKeyboardBuilder()
-    _add_webapp_button(builder)
+    _add_webapp_button(builder, tg_id=tg_id)
     target_grade = grade or 7
     if grade:
         builder.button(text="до списку тем", callback_data=f"topics_list:{grade}")
@@ -83,10 +99,10 @@ def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
 get_stats_keyboard = get_profile_keyboard
 
 
-def get_leaderboard_keyboard(grade: int = 7) -> InlineKeyboardMarkup:
+def get_leaderboard_keyboard(grade: int = 7, tg_id: int | None = None) -> InlineKeyboardMarkup:
     """Генерує кнопки для екрана лідерборду обраного класу."""
     builder = InlineKeyboardBuilder()
-    _add_webapp_button(builder)
+    _add_webapp_button(builder, tg_id=tg_id)
     builder.button(text="обрати інший клас", callback_data=f"lb_select_grade:{grade}")
     builder.button(text="оновити топ", callback_data=f"lb_grade:{grade}")
     builder.button(text=f"теми ({grade} клас)", callback_data=f"topics_list:{grade}")
@@ -109,11 +125,14 @@ def get_task_keyboard(
     topic_id: int,
     grade: int,
     has_diagram: bool = False,
+    tg_id: int | None = None,
 ) -> InlineKeyboardMarkup:
     """Генерує кнопки дій для перегляду завдання."""
     builder = InlineKeyboardBuilder()
     if has_diagram and settings.WEB_APP_URL:
-        builder.button(text="відкрити з малюнком у додатку", web_app=WebAppInfo(url=settings.WEB_APP_URL))
+        url = get_webapp_url(tg_id)
+        if url:
+            builder.button(text="відкрити з малюнком у додатку", web_app=WebAppInfo(url=url))
     builder.button(text="дати відповідь", callback_data=f"solve:{task_id}")
     builder.button(text="підказка", callback_data=f"hint:{task_id}")
     builder.button(text="нова задача з цієї теми", callback_data=f"new_task:{topic_id}")

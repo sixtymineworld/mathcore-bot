@@ -1,24 +1,73 @@
 // mathcore Telegram Mini App Client Logic
 document.addEventListener("DOMContentLoaded", () => {
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    // Зберігаємо Telegram initData у локальне сховище та кукі для надійного збереження сесії
-    if (tg.initData) {
-      try {
-        localStorage.setItem("mathcore_init_data", tg.initData);
-        sessionStorage.setItem("mathcore_init_data", tg.initData);
-        document.cookie = `mathcore_init_data=${encodeURIComponent(tg.initData)}; path=/; max-age=31536000; SameSite=None; Secure`;
-      } catch (e) {
-        console.warn("Storage write error:", e);
-      }
+  // 1. Зчитування параметрів сесії з URL (якщо відкрито через кнопку бота)
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromUrl = urlParams.get("token") || urlParams.get("session_token");
+  const tgIdFromUrl = urlParams.get("tg_id");
+
+  if (tokenFromUrl) {
+    try {
+      localStorage.setItem("mathcore_session_token", tokenFromUrl);
+      sessionStorage.setItem("mathcore_session_token", tokenFromUrl);
+      document.cookie = `mathcore_session=${encodeURIComponent(tokenFromUrl)}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch (e) {
+      console.warn("Could not save session token from URL:", e);
     }
   }
 
-  // Відновлення збереженого стану сесії з localStorage
+  if (tgIdFromUrl) {
+    try {
+      localStorage.setItem("mathcore_tg_id", tgIdFromUrl);
+    } catch (e) {}
+  }
+
+  // 2. Ініціалізація Telegram WebApp SDK
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      if (tg.initData) {
+        localStorage.setItem("mathcore_init_data", tg.initData);
+        sessionStorage.setItem("mathcore_init_data", tg.initData);
+        document.cookie = `mathcore_init_data=${encodeURIComponent(tg.initData)}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+      const tgUser = tg.initDataUnsafe?.user;
+      if (tgUser) {
+        if (tgUser.id) localStorage.setItem("mathcore_tg_id", tgUser.id.toString());
+        if (tgUser.first_name) localStorage.setItem("mathcore_first_name", tgUser.first_name);
+      }
+    } catch (e) {
+      console.warn("Telegram WebApp init error:", e);
+    }
+  }
+
+  // 3. Відновлення збереженого стану сесії з localStorage
   const savedGrade = localStorage.getItem("mathcore_grade");
   const savedSubject = localStorage.getItem("mathcore_subject");
+  const savedName = localStorage.getItem("mathcore_first_name") || tg?.initDataUnsafe?.user?.first_name;
+
+  // Миттєво підставляємо збережені дані в UI (до завершення мережевих запитів)
+  if (savedName) {
+    const nameLower = savedName.toLowerCase();
+    const heroName = document.getElementById("hero-user-name");
+    if (heroName) heroName.textContent = nameLower;
+    const badgeName = document.getElementById("badge-name");
+    if (badgeName) badgeName.textContent = nameLower;
+    const profileName = document.getElementById("profile-name");
+    if (profileName) profileName.textContent = nameLower;
+    const profileAvatar = document.getElementById("profile-avatar");
+    if (profileAvatar) profileAvatar.textContent = nameLower.charAt(0);
+  }
+
+  if (savedGrade) {
+    const parsedGrade = parseInt(savedGrade, 10);
+    const gradeText = parsedGrade === 11 ? "11 клас (нмт)" : `${parsedGrade} клас`;
+    const badgeGrade = document.getElementById("badge-grade");
+    if (badgeGrade) badgeGrade.textContent = gradeText;
+    const profileGrade = document.getElementById("profile-grade");
+    if (profileGrade) profileGrade.textContent = gradeText;
+  }
 
   // Стан застосунку зі збереженням вибору учня
   const state = {
@@ -54,18 +103,31 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.getItem("mathcore_init_data") ||
       sessionStorage.getItem("mathcore_init_data") ||
       "";
-    const sessionToken = localStorage.getItem("mathcore_session_token") || "";
+    const sessionToken =
+      localStorage.getItem("mathcore_session_token") ||
+      sessionStorage.getItem("mathcore_session_token") ||
+      "";
+    const tgId = localStorage.getItem("mathcore_tg_id") || "";
 
     const headers = {
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "true",
-      ...(initData ? { Authorization: `tma ${initData}` } : {}),
+      ...(initData ? { Authorization: `tma ${initData}` } : (sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {})),
       ...(sessionToken ? { "X-Session-Token": sessionToken } : {}),
       ...(options.headers || {}),
     };
 
+    let url = `/api/v1${endpoint}`;
+    if (sessionToken && !url.includes("token=")) {
+      const sep = url.includes("?") ? "&" : "?";
+      url += `${sep}session_token=${encodeURIComponent(sessionToken)}`;
+      if (tgId) {
+        url += `&tg_id=${encodeURIComponent(tgId)}`;
+      }
+    }
+
     try {
-      const response = await fetch(`/api/v1${endpoint}`, {
+      const response = await fetch(url, {
         ...options,
         headers,
         credentials: "include", // Завжди передавати та зберігати кукі сесії
@@ -74,9 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Збереження токена сесії з відповіді сервера
       const newSessionToken = response.headers.get("X-Session-Token");
       if (newSessionToken) {
-        localStorage.setItem("mathcore_session_token", newSessionToken);
         try {
-          document.cookie = `mathcore_session=${encodeURIComponent(newSessionToken)}; path=/; max-age=31536000; SameSite=None; Secure`;
+          localStorage.setItem("mathcore_session_token", newSessionToken);
+          sessionStorage.setItem("mathcore_session_token", newSessionToken);
+          document.cookie = `mathcore_session=${encodeURIComponent(newSessionToken)}; path=/; max-age=31536000; SameSite=Lax`;
         } catch (e) {}
       }
 
@@ -88,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(`API Error on ${endpoint}:`, err);
       throw err;
     }
+  }
   }
 
   // Перетворення та рендеринг тексту з формулами та HTML
@@ -967,7 +1031,10 @@ document.addEventListener("DOMContentLoaded", () => {
   updateHeroGreeting();
   renderGradeChips();
   renderLeaderboardGradeChips();
+  loadTopics(state.currentGrade, state.currentGrade >= 7 ? state.currentSubject : null);
   loadProfile(true).then(() => {
-    loadTopics(state.currentGrade, state.currentGrade >= 7 ? state.currentSubject : null);
+    if (state.profile?.grade && state.profile.grade !== state.currentGrade) {
+      setGrade(state.profile.grade);
+    }
   });
 });

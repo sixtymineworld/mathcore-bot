@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import api_router
@@ -59,12 +59,22 @@ def create_app() -> FastAPI:
 
     static_dir = Path(__file__).resolve().parent.parent / "web" / "static"
     if static_dir.exists():
-        app.mount("/app", StaticFiles(directory=str(static_dir), html=True), name="static_tma")
-        logger.info("статичні файли tma змонтовано на /app з %s", static_dir)
+        index_file = static_dir / "index.html"
+
+        @app.get("/app", include_in_schema=False)
+        async def serve_app_direct():
+            return FileResponse(index_file)
+
+        @app.get("/app/", include_in_schema=False)
+        async def serve_app_slash_direct():
+            return FileResponse(index_file)
 
         @app.get("/", include_in_schema=False)
         async def root_redirect():
-            return RedirectResponse(url="/app/")
+            return FileResponse(index_file)
+
+        app.mount("/app", StaticFiles(directory=str(static_dir), html=True), name="static_tma")
+        logger.info("статичні файли tma змонтовано на /app з %s", static_dir)
 
     return app
 
