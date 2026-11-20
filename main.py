@@ -29,6 +29,7 @@ async def on_startup(bot: Bot) -> None:
 
     await bot.set_my_commands([
         BotCommand(command="topics", description="список навчальних тем"),
+        BotCommand(command="top", description="топ найкращих учнів"),
         BotCommand(command="profile", description="профіль та успішність"),
         BotCommand(command="start", description="вибір класу та головне меню"),
     ])

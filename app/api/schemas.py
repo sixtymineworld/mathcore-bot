@@ -7,6 +7,7 @@ class UserProfileResponse(BaseModel):
     tg_id: int = Field(description="Telegram ID користувача")
     first_name: str = Field(description="Ім'я користувача")
     grade: int | None = Field(default=None, description="Клас навчання (1–11)")
+    points: int = Field(default=0, description="Загальна кількість набраних балів")
     total_attempts: int = Field(default=0, description="Загальна кількість спроб")
     solved_unique: int = Field(default=0, description="Кількість унікальних розв'язаних задач")
     accuracy: int = Field(default=0, description="Точність відповідей у відсотках")
@@ -16,6 +17,29 @@ class UserProfileResponse(BaseModel):
     days_registered: int = Field(default=1, description="Днів у mathcore")
     rank: str = Field(default="початківець", description="Рівень майстерності")
     progress_bar: str = Field(default="[□□□□□□□□]", description="Текстовий прогрес-бар")
+
+
+class LeaderboardUserItem(BaseModel):
+    """Елемент списку лідерборду для одного учня."""
+
+    rank: int = Field(description="Місце в рейтингу")
+    tg_id: int = Field(description="Telegram ID користувача")
+    first_name: str = Field(description="Ім'я учня")
+    username: str | None = Field(default=None, description="Username у Telegram")
+    grade: int | None = Field(default=None, description="Клас навчання")
+    points: int = Field(description="Набрані бали")
+    solved_tasks: int = Field(description="Кількість розв'язаних завдань")
+    is_current_user: bool = Field(default=False, description="Чи це поточний користувач")
+
+
+class LeaderboardResponse(BaseModel):
+    """Відповідь з топом учнів та позицією поточного користувача."""
+
+    top_users: list[LeaderboardUserItem] = Field(description="Список лідерів")
+    current_user_rank: int = Field(default=0, description="Місце поточного користувача")
+    current_user_points: int = Field(default=0, description="Бали поточного користувача")
+    current_user_solved: int = Field(default=0, description="Розв'язано задач поточним користувачем")
+    total_participants: int = Field(default=0, description="Всього учасників у рейтингу")
 
 
 class UpdateGradeRequest(BaseModel):

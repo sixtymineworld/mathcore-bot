@@ -188,6 +188,11 @@ document.addEventListener("DOMContentLoaded", () => {
       loadProfile(false);
     }
 
+    // Якщо відкриваємо лідерборд
+    if (targetTabId === "tab-leaderboard") {
+      loadLeaderboard();
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -696,6 +701,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const profileRank = document.getElementById("profile-rank");
       if (profileRank) profileRank.textContent = profile.rank || "дослідник";
 
+      const statPoints = document.getElementById("stat-points");
+      if (statPoints) statPoints.textContent = profile.points ?? 0;
+
       const statSolved = document.getElementById("stat-solved");
       if (statSolved) statSolved.textContent = profile.solved_unique ?? 0;
 
@@ -796,6 +804,89 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         document.getElementById("grade-chips-list")?.scrollIntoView({ behavior: "smooth" });
       }
+    });
+  }
+
+  // ==========================================
+  // Топ учнів (Лідерборд)
+  // ==========================================
+  const leaderboardList = document.getElementById("leaderboard-list");
+  const myRankVal = document.getElementById("my-rank-val");
+  const myPointsVal = document.getElementById("my-points-val");
+  const mySolvedVal = document.getElementById("my-solved-val");
+
+  async function loadLeaderboard() {
+    if (!leaderboardList) return;
+    leaderboardList.innerHTML = '<div class="loading-state">завантаження рейтингу...</div>';
+
+    try {
+      const data = await apiRequest("/leaderboard");
+      renderLeaderboard(data);
+    } catch (e) {
+      console.warn("Could not load leaderboard:", e);
+      leaderboardList.innerHTML = '<div class="loading-state">не вдалося завантажити рейтинг</div>';
+    }
+  }
+
+  function renderLeaderboard(data) {
+    const topUsers = data.top_users || [];
+
+    if (myRankVal) myRankVal.textContent = data.current_user_rank > 0 ? `#${data.current_user_rank}` : "#—";
+    if (myPointsVal) myPointsVal.textContent = data.current_user_points || 0;
+    if (mySolvedVal) mySolvedVal.textContent = data.current_user_solved || 0;
+
+    for (let place = 1; place <= 3; place++) {
+      const user = topUsers[place - 1];
+      const nameEl = document.getElementById(`podium-name-${place}`);
+      const pointsEl = document.getElementById(`podium-points-${place}`);
+      const gradeEl = document.getElementById(`podium-grade-${place}`);
+      const avatarEl = document.getElementById(`podium-avatar-${place}`);
+
+      if (user) {
+        const uName = (user.first_name || "учень").toLowerCase();
+        if (nameEl) nameEl.textContent = uName;
+        if (pointsEl) pointsEl.textContent = `${user.points} б.`;
+        if (gradeEl) gradeEl.textContent = user.grade ? `${user.grade} клас` : "";
+        if (avatarEl) avatarEl.textContent = uName.charAt(0);
+      } else {
+        if (nameEl) nameEl.textContent = "—";
+        if (pointsEl) pointsEl.textContent = "0 б.";
+        if (gradeEl) gradeEl.textContent = "";
+        if (avatarEl) avatarEl.textContent = place.toString();
+      }
+    }
+
+    leaderboardList.innerHTML = "";
+    const listUsers = topUsers.length > 3 ? topUsers.slice(3) : [];
+
+    if (topUsers.length === 0) {
+      leaderboardList.innerHTML = '<div class="loading-state">список лідерів формується! розв\'язуй завдання першим.</div>';
+      return;
+    }
+
+    if (listUsers.length === 0) {
+      leaderboardList.innerHTML = '<div class="leaderboard-empty-tail">усі активні лідери зараз на подіумі вище!</div>';
+      return;
+    }
+
+    listUsers.forEach((u) => {
+      const row = document.createElement("div");
+      row.className = `leaderboard-item ${u.is_current_user ? "current-user" : ""}`;
+      const uName = escapeHtml((u.first_name || "учень").toLowerCase());
+      const gradeStr = u.grade ? `${u.grade} клас` : "гість";
+
+      row.innerHTML = `
+        <div class="item-left">
+          <span class="item-rank-num">#${u.rank}</span>
+          <div class="item-avatar">${uName.charAt(0)}</div>
+          <div class="item-info">
+            <div class="item-name">${uName}${u.is_current_user ? ' <span class="you-badge">(ти)</span>' : ""}</div>
+            <div class="item-grade">${gradeStr} · ${u.solved_tasks} задач</div>
+          </div>
+        </div>
+        <div class="item-points-badge">${u.points} б.</div>
+      `;
+      leaderboardList.appendChild(row);
     });
   }
 

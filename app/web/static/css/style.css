@@ -1652,6 +1652,343 @@ body {
   }
 }
 
+/* ==========================================================================
+   Лідерборд / Топ найкращих учнів
+   ========================================================================== */
+.stats-grid.stats-grid-4 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+  .stats-grid.stats-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.leaderboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.leaderboard-header {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+
+.leaderboard-title {
+  font-family: var(--font-base);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--noir);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+
+.leaderboard-sub {
+  font-size: 13px;
+  color: var(--hint-color);
+  font-weight: 500;
+}
+
+/* Банер поточної позиції користувача */
+.my-leaderboard-banner {
+  background: var(--sand-soft);
+  border: 1.5px solid var(--sand-deep);
+  border-radius: 20px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(77, 48, 26, 0.05);
+}
+
+.my-rank-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.my-rank-label {
+  font-size: 13px;
+  color: var(--hint-color);
+  font-weight: 600;
+}
+
+.my-rank-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--noir);
+  font-family: var(--font-digits);
+}
+
+.my-score-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.my-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.my-score-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--noir);
+  font-family: var(--font-digits);
+}
+
+.my-score-lbl {
+  font-size: 11px;
+  color: var(--hint-color);
+  font-weight: 500;
+}
+
+/* Подіум топ-3 */
+.podium-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 6px;
+  padding: 0 4px;
+}
+
+.podium-step {
+  flex: 1;
+  max-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.podium-crown {
+  position: absolute;
+  top: -22px;
+  color: #c98b2c;
+  animation: floatBounce 2.4s ease-in-out infinite;
+}
+
+.podium-crown .material-symbols-outlined {
+  font-size: 22px;
+}
+
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.podium-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--sand-light);
+  margin-bottom: 6px;
+  box-shadow: 0 3px 8px rgba(77, 48, 26, 0.12);
+}
+
+.step-gold .podium-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+  background: linear-gradient(135deg, #b5885c 0%, #8c6239 100%);
+  border: 2px solid var(--sand-light);
+}
+
+.step-silver .podium-avatar {
+  background: linear-gradient(135deg, #c4a587 0%, #a38262 100%);
+  border: 2px solid var(--sand-light);
+}
+
+.step-bronze .podium-avatar {
+  background: linear-gradient(135deg, #d6b99d 0%, #b8987b 100%);
+  border: 2px solid var(--sand-light);
+}
+
+.podium-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--noir);
+  max-width: 95px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.step-gold .podium-name {
+  font-size: 14px;
+}
+
+.podium-grade {
+  font-size: 11px;
+  color: var(--hint-color);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.podium-points {
+  font-size: 12px;
+  font-weight: 800;
+  color: #8c6239;
+  font-family: var(--font-digits);
+  margin-bottom: 8px;
+}
+
+.podium-pillar {
+  width: 100%;
+  border-radius: 14px 14px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 22px;
+  box-shadow: 0 4px 10px rgba(77, 48, 26, 0.08);
+}
+
+.pillar-1 {
+  height: 92px;
+  background: linear-gradient(180deg, rgba(201, 168, 136, 0.55) 0%, rgba(181, 136, 92, 0.6) 100%);
+  border: 1.5px solid #b5885c;
+  color: #4d301a;
+}
+
+.pillar-2 {
+  height: 72px;
+  background: linear-gradient(180deg, rgba(214, 185, 157, 0.5) 0%, rgba(196, 165, 135, 0.55) 100%);
+  border: 1.5px solid #c4a587;
+  color: #5e3d23;
+}
+
+.pillar-3 {
+  height: 54px;
+  background: linear-gradient(180deg, rgba(227, 201, 176, 0.45) 0%, rgba(214, 185, 157, 0.5) 100%);
+  border: 1.5px solid #d6b99d;
+  color: #6e492c;
+}
+
+/* Таблиця решти результатів */
+.leaderboard-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-item {
+  background: var(--sand-soft);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.leaderboard-item:active {
+  transform: scale(0.99);
+}
+
+.leaderboard-item.current-user {
+  background: var(--sand-light);
+  border: 1.5px solid var(--blush);
+  box-shadow: 0 3px 12px rgba(201, 168, 136, 0.25);
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.item-rank-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--hint-color);
+  width: 28px;
+  font-family: var(--font-digits);
+}
+
+.item-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--noir);
+  color: var(--sand-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--noir);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.you-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8c6239;
+  margin-left: 4px;
+}
+
+.item-grade {
+  font-size: 12px;
+  color: var(--hint-color);
+  font-weight: 500;
+}
+
+.item-points-badge {
+  background: rgba(201, 168, 136, 0.35);
+  color: var(--noir-deep);
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--font-digits);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(77, 48, 26, 0.12);
+  flex-shrink: 0;
+}
+
+.leaderboard-empty-tail {
+  text-align: center;
+  font-size: 13px;
+  color: var(--hint-color);
+  padding: 16px 8px;
+  font-style: italic;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

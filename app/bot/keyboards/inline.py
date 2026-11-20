@@ -31,6 +31,7 @@ def get_home_keyboard(grade: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     _add_webapp_button(builder)
     builder.button(text=f"навчальні теми ({grade} клас)", callback_data=f"topics_list:{grade}")
+    builder.button(text="топ учнів", callback_data="leaderboard")
     builder.button(text="профіль та успішність", callback_data="my_profile")
     builder.button(text="змінити клас", callback_data="change_grade")
     return builder.adjust(1).as_markup()
@@ -61,6 +62,7 @@ def get_topics_keyboard(
         builder.button(text=f"перейти до: {other_subj}", callback_data=f"subject:{grade}:{other_subj}")
 
     _add_webapp_button(builder)
+    builder.button(text="топ учнів", callback_data="leaderboard")
     builder.button(text="профіль та успішність", callback_data="my_profile")
     builder.button(text="змінити клас", callback_data="change_grade")
     return builder.adjust(1).as_markup()
@@ -72,11 +74,23 @@ def get_profile_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
     _add_webapp_button(builder)
     if grade:
         builder.button(text="до списку тем", callback_data=f"topics_list:{grade}")
+    builder.button(text="топ учнів", callback_data="leaderboard")
     builder.button(text="змінити клас", callback_data="change_grade")
     return builder.adjust(1).as_markup()
 
 
 get_stats_keyboard = get_profile_keyboard
+
+
+def get_leaderboard_keyboard(grade: int | None = None) -> InlineKeyboardMarkup:
+    """Генерує кнопки для екрана лідерборду."""
+    builder = InlineKeyboardBuilder()
+    _add_webapp_button(builder)
+    if grade:
+        builder.button(text="до списку тем", callback_data=f"topics_list:{grade}")
+    builder.button(text="оновити топ", callback_data="leaderboard")
+    builder.button(text="профіль та успішність", callback_data="my_profile")
+    return builder.adjust(1).as_markup()
 
 
 def get_task_keyboard(

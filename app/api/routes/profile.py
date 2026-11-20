@@ -19,6 +19,7 @@ async def get_my_profile(
         tg_id=user.tg_id,
         first_name=profile.get("first_name") or user.first_name,
         grade=profile.get("grade"),
+        points=profile.get("points", 0),
         total_attempts=profile.get("total_attempts", 0),
         solved_unique=profile.get("solved_unique", 0),
         accuracy=profile.get("accuracy", 0),
