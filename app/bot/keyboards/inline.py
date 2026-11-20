@@ -126,6 +126,8 @@ def get_task_keyboard(
     grade: int,
     has_diagram: bool = False,
     tg_id: int | None = None,
+    is_quiz: bool = False,
+    options: list[str] | None = None,
 ) -> InlineKeyboardMarkup:
     """Генерує кнопки дій для перегляду завдання."""
     builder = InlineKeyboardBuilder()
@@ -133,12 +135,27 @@ def get_task_keyboard(
         url = get_webapp_url(tg_id)
         if url:
             builder.button(text="відкрити з малюнком у додатку", web_app=WebAppInfo(url=url))
-    builder.button(text="дати відповідь", callback_data=f"solve:{task_id}")
+
+    if is_quiz and options:
+        letters = ["а", "б", "в", "г", "д"]
+        for i, opt in enumerate(options[:4]):
+            let = letters[i]
+            builder.button(text=f"{let}) {opt}", callback_data=f"quiz_ans:{task_id}:{let}:{opt[:32]}")
+    else:
+        builder.button(text="дати відповідь", callback_data=f"solve:{task_id}")
+
     builder.button(text="підказка", callback_data=f"hint:{task_id}")
     builder.button(text="нова задача з цієї теми", callback_data=f"new_task:{topic_id}")
     builder.button(text="до списку інших тем", callback_data=f"topics_list:{grade}")
 
-    layout = (1, 2, 1, 1) if (has_diagram and settings.WEB_APP_URL) else (2, 1, 1)
+    if is_quiz and options:
+        layout = []
+        if has_diagram and settings.WEB_APP_URL:
+            layout.append(1)
+        layout.extend([2, 2, 2, 1])
+    else:
+        layout = (1, 2, 1, 1) if (has_diagram and settings.WEB_APP_URL) else (2, 1, 1)
+
     return builder.adjust(*layout).as_markup()
 
 

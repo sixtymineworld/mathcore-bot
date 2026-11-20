@@ -531,9 +531,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentTopicTitle = document.getElementById("current-topic-title");
   const taskTitle = document.getElementById("task-title");
   const taskNmtBadge = document.getElementById("task-nmt-badge");
+  const taskQuizBadge = document.getElementById("task-quiz-badge");
   const taskDifficulty = document.getElementById("task-difficulty");
   const taskDiagram = document.getElementById("task-diagram");
   const taskQuestion = document.getElementById("task-question");
+  const taskInputSection = document.getElementById("task-input-section");
+  const taskQuizSection = document.getElementById("task-quiz-section");
+  const quizOptionsContainer = document.getElementById("quiz-options-container");
+  const btnGetHintQuiz = document.getElementById("btn-get-hint-quiz");
+  const btnGenerateAnotherQuiz = document.getElementById("btn-generate-another-quiz");
   const taskHintBox = document.getElementById("task-hint-box");
   const taskHintText = document.getElementById("task-hint-text");
   const userAnswerInput = document.getElementById("user-answer-input");
@@ -614,6 +620,97 @@ document.addEventListener("DOMContentLoaded", () => {
     if (taskQuestion) {
       formatAndDisplayMath(taskQuestion, task.question_text);
     }
+
+    // Режим квізу (вибір з варіантів для простих завдань) або ручний ввід
+    const isQuiz = Boolean(task.is_quiz && task.options && Array.isArray(task.options) && task.options.length > 0);
+    if (isQuiz) {
+      if (taskQuizBadge) taskQuizBadge.classList.remove("hidden");
+      if (taskQuizSection) taskQuizSection.classList.remove("hidden");
+      if (taskInputSection) taskInputSection.classList.add("hidden");
+      renderQuizOptions(task.options);
+    } else {
+      if (taskQuizBadge) taskQuizBadge.classList.add("hidden");
+      if (taskQuizSection) taskQuizSection.classList.add("hidden");
+      if (taskInputSection) taskInputSection.classList.remove("hidden");
+    }
+  }
+
+  const quizOptionLetters = ["а", "б", "в", "г"];
+
+  function renderQuizOptions(options) {
+    if (!quizOptionsContainer) return;
+    quizOptionsContainer.innerHTML = "";
+
+    options.forEach((optText, idx) => {
+      const letter = quizOptionLetters[idx] || String.fromCharCode(97 + idx);
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "quiz-option-card";
+      card.setAttribute("data-option", optText);
+      card.setAttribute("data-letter", letter);
+      card.innerHTML = `
+        <span class="quiz-option-letter">${letter}</span>
+        <span class="quiz-option-text">${formatMathText(optText)}</span>
+      `;
+      card.addEventListener("click", () => handleQuizOptionClick(card, optText));
+      renderLatex(card);
+      quizOptionsContainer.appendChild(card);
+    });
+  }
+
+  async function handleQuizOptionClick(selectedCard, chosenOption) {
+    if (!state.currentTask || selectedCard.classList.contains("disabled")) return;
+
+    const allCards = quizOptionsContainer ? quizOptionsContainer.querySelectorAll(".quiz-option-card") : [];
+    allCards.forEach((c) => c.classList.add("disabled"));
+    selectedCard.classList.add("selected");
+
+    triggerHaptic("medium");
+
+    try {
+      const result = await apiRequest(`/tasks/${state.currentTask.id}/check`, {
+        method: "POST",
+        body: JSON.stringify({ answer: chosenOption }),
+      });
+
+      if (taskResultBox) taskResultBox.classList.remove("hidden");
+      if (result.is_correct) {
+        triggerHaptic("success");
+        selectedCard.classList.remove("selected");
+        selectedCard.classList.add("correct");
+        if (taskResultBox) taskResultBox.className = "result-box correct";
+        if (resultStatus) {
+          resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">check_circle</span> відповідь правильна!`;
+        }
+      } else {
+        triggerHaptic("error");
+        selectedCard.classList.remove("selected");
+        selectedCard.classList.add("incorrect");
+        if (taskResultBox) taskResultBox.className = "result-box incorrect";
+        if (resultStatus) {
+          resultStatus.innerHTML = `<span class="material-symbols-outlined status-icon">refresh</span> спробуй ще раз`;
+        }
+      }
+
+      if (resultExplanation) {
+        resultExplanation.textContent = "";
+        formatAndDisplayMath(resultExplanation, result.explanation);
+      }
+
+      // Відображаємо кнопку покрокового розв'язку
+      const solution = result.detailed_solution || state.currentTask.detailed_solution;
+      if (solution && btnToggleSolution && taskSolutionBox) {
+        formatAndDisplayMath(taskSolutionText, solution);
+        btnToggleSolution.classList.remove("hidden");
+        btnToggleSolution.innerHTML = `<span class="material-symbols-outlined" style="font-size: 15px;">menu_book</span><span>покроковий розв'язок</span><span>↓</span>`;
+        taskSolutionBox.classList.add("hidden");
+      } else if (btnToggleSolution) {
+        btnToggleSolution.classList.add("hidden");
+      }
+    } catch (e) {
+      alert("помилка перевірки відповіді");
+      allCards.forEach((c) => c.classList.remove("disabled", "selected"));
+    }
   }
 
   function resetTaskUI() {
@@ -628,6 +725,10 @@ document.addEventListener("DOMContentLoaded", () => {
       taskDiagram.innerHTML = "";
     }
     if (taskNmtBadge) taskNmtBadge.classList.add("hidden");
+    if (taskQuizBadge) taskQuizBadge.classList.add("hidden");
+    if (taskQuizSection) taskQuizSection.classList.add("hidden");
+    if (taskInputSection) taskInputSection.classList.remove("hidden");
+    if (quizOptionsContainer) quizOptionsContainer.innerHTML = "";
     if (btnToggleSolution) btnToggleSolution.classList.add("hidden");
     if (taskSolutionBox) taskSolutionBox.classList.add("hidden");
     if (taskSolutionText) taskSolutionText.textContent = "";
@@ -730,6 +831,14 @@ document.addEventListener("DOMContentLoaded", () => {
       triggerHaptic("medium");
       await generateNewTask(state.currentTopic.id);
     });
+  }
+
+  // Кнопки дій для режиму квізу
+  if (btnGetHintQuiz && btnGetHint) {
+    btnGetHintQuiz.addEventListener("click", () => btnGetHint.click());
+  }
+  if (btnGenerateAnotherQuiz && btnGenerateAnother) {
+    btnGenerateAnotherQuiz.addEventListener("click", () => btnGenerateAnother.click());
   }
 
   // ==========================================

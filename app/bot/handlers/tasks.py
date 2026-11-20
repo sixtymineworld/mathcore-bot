@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import TYPE_CHECKING
 
@@ -31,15 +32,24 @@ def render_task_view(
     """Формує текст повідомлення та клавіатуру для перегляду завдання."""
     stars = f"{max(1, min(task.difficulty, 3))}/3"
     nmt_badge = " [формат нмт]" if task.is_nmt else ""
+    quiz_badge = " [квіз]" if task.is_quiz else ""
     diagram_notice = (
         "\n<i>(до цього завдання є креслення — відкрий його у веб-додатку нижче)</i>\n"
         if task.diagram_svg
         else ""
     )
+
+    quiz_options_text = ""
+    if task.is_quiz and task.options:
+        letters = ["а", "б", "в", "г", "д"]
+        opts_lines = [f"<b>{letters[i]})</b> {opt}" for i, opt in enumerate(task.options[:4])]
+        quiz_options_text = "\n\n<b>варіанти відповідей:</b>\n" + "\n".join(opts_lines)
+
     text = (
         f"<b>тема:</b> {topic_title}\n"
-        f"<b>завдання:</b> {task.title}{nmt_badge} (складність: {stars})\n\n"
+        f"<b>завдання:</b> {task.title}{nmt_badge}{quiz_badge} (складність: {stars})\n\n"
         f"{task.question_text}\n"
+        f"{quiz_options_text}"
         f"{diagram_notice}\n"
         "<i>вибирай дію нижче:</i>"
     )
@@ -49,6 +59,8 @@ def render_task_view(
         grade=grade,
         has_diagram=bool(task.diagram_svg),
         tg_id=tg_id,
+        is_quiz=task.is_quiz,
+        options=task.options,
     )
     return text, keyboard
 
@@ -67,6 +79,12 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
     ai_checker = get_ai_checker()
     generated = await ai_checker.generate_task(grade=topic.grade, topic=topic.title)
 
+    options_json = (
+        json.dumps(generated.options, ensure_ascii=False)
+        if (generated.is_quiz and generated.options)
+        else None
+    )
+
     task = await TaskService.create_generated_task(
         topic_id=topic.id,
         title=generated.title,
@@ -77,6 +95,8 @@ async def generate_and_show_task(callback: CallbackQuery, topic_id: int) -> None
         diagram_svg=generated.diagram_svg,
         is_nmt=generated.is_nmt,
         detailed_solution=generated.detailed_solution,
+        is_quiz=generated.is_quiz,
+        options_json=options_json,
     )
 
     text, markup = render_task_view(task, topic.title, topic.grade, tg_id=callback.from_user.id)
@@ -278,3 +298,77 @@ async def handle_user_answer(message: Message, state: FSMContext) -> None:
 
     await state.clear()
     await message.answer(text=response_text, reply_markup=reply_markup)
+
+
+@router.callback_query(F.data.startswith("quiz_ans:"))
+async def handle_quiz_answer(callback: CallbackQuery, state: FSMContext) -> None:
+    """Обробник вибору варіанта відповіді у квізі безпосередньо з інлайн-кнопок."""
+    if not callback.data or not callback.message:
+        return
+
+    parts = callback.data.split(":", 3)
+    if len(parts) < 4:
+        await callback.answer("помилка вибору варіанту.", show_alert=True)
+        return
+
+    try:
+        task_id = int(parts[1])
+    except ValueError:
+        await callback.answer("помилка номера завдання.", show_alert=True)
+        return
+
+    letter = parts[2]
+    selected_option = parts[3]
+
+    task = await TaskService.get_task_by_id(task_id)
+    if not task:
+        await callback.answer("завдання не знайдено.", show_alert=True)
+        return
+
+    topic = await TaskService.get_topic_by_id(task.topic_id)
+    grade = topic.grade if topic else 5
+
+    await callback.answer(f"обрано варіант {letter}")
+
+    ai_checker = get_ai_checker()
+    result = await ai_checker.check_solution(
+        task_question=task.question_text,
+        user_answer=selected_option,
+        correct_answer=task.correct_answer,
+        grade=grade,
+    )
+
+    await TaskService.record_task_attempt(
+        tg_id=callback.from_user.id,
+        task_id=task.id,
+        is_correct=result.is_correct,
+        user_answer=selected_option,
+    )
+
+    next_task = await TaskService.get_next_task(topic_id=task.topic_id, current_task_id=task.id)
+
+    status_header = (
+        "<b>правильно!</b>"
+        if result.is_correct
+        else f"<b>неправильно.</b> твій вибір: <b>{letter}) {selected_option}</b>"
+    )
+
+    sol_text = result.detailed_solution or task.detailed_solution or f"правильна відповідь: {task.correct_answer}."
+    response_text = (
+        f"{status_header}\n\n"
+        f"{result.feedback}\n\n"
+        f"<b>покроковий розв'язок:</b>\n{sol_text}\n\n"
+        "що робимо далі? вибирай дію нижче:"
+    )
+
+    reply_markup = get_task_navigation_keyboard(
+        next_task_id=next_task.id if next_task else None,
+        current_task_id=task.id,
+        topic_id=task.topic_id,
+        grade=grade,
+        is_correct=result.is_correct,
+    )
+
+    await state.clear()
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(text=response_text, reply_markup=reply_markup)

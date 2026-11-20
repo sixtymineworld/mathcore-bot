@@ -48,6 +48,8 @@ class GeneratedTask:
     diagram_svg: str | None = None
     is_nmt: bool = False
     detailed_solution: str | None = None
+    is_quiz: bool = False
+    options: list[str] | None = None
 
 
 class BaseAIChecker(ABC):
@@ -157,9 +159,37 @@ class MockAIChecker(BaseAIChecker):
     ) -> GeneratedTask:
         """Процедурна генерація завдань за програмою О. Істера та геометрії з рисунками."""
         geom_task = _generate_geometry_task(grade, topic)
-        if geom_task:
-            return geom_task
-        return _generate_school_task(grade, topic)
+        task = geom_task or _generate_school_task(grade, topic)
+        if task.difficulty == 1 and not task.is_quiz:
+            task.is_quiz = True
+            task.options = _make_quiz_options(task.correct_answer)
+        return task
+
+
+def _make_quiz_options(correct_val: str, distractors: list[str] | None = None) -> list[str]:
+    """Створює 4 варіанти відповідей для квізу з правильним значенням та дистракторами."""
+    opts = [correct_val]
+    if distractors:
+        for d in distractors:
+            if d != correct_val and d not in opts:
+                opts.append(d)
+    try:
+        num = int(correct_val)
+        shifts = [-3, -2, -1, 1, 2, 3, 4, 5]
+        random.shuffle(shifts)
+        for s in shifts:
+            cand = str(num + s)
+            if cand not in opts:
+                opts.append(cand)
+            if len(opts) == 4:
+                break
+    except ValueError:
+        pass
+    while len(opts) < 4:
+        opts.append(f"варіант {len(opts) + 1}")
+    opts = opts[:4]
+    random.shuffle(opts)
+    return opts
 
 
 def _generate_geometry_task(grade: int, topic: str) -> GeneratedTask | None:
@@ -664,23 +694,25 @@ class GeminiAIChecker(BaseAIChecker):
             "твій стиль: виключно маленькими літерами (lowercase), чіткий, зрозумілий учневі.\n\n"
             "завдання:\n"
             f"склади одне типове практичне завдання для {grade} класу за матеріалом та стилем підручника О. Істера "
-            f"за темою «{topic}» (це може бути приклад на обчислення, рівняння, властивість чи класична текстова задача з підручника).\n"
-            f"завдання має суворо відповідати рівню складності {grade} класу (не ускладнюй штучно до формату тестів НМТ для молодших чи середніх класів).\n"
+            f"за темою «{topic}».\n"
             f"{geom_instruction}\n"
-            "вимоги до завдання:\n"
-            "1. умова (question): чітка, лаконічна, без довгих передмов.\n"
-            "2. відповідь (correct_answer): ОДНЕ число (ціле або десятковий дріб через крапку чи кому, наприклад: 12, 4.5, -7, 180), щоб учень міг швидко ввести його з клавіатури.\n"
+            "вимоги до формату завдання (квіз або відкрита відповідь):\n"
+            "- для простіших завдань (difficulty 1: базові поняття, прості обчислення, правила): зроби у форматі КВІЗУ (is_quiz: true). надай 4 варіанти відповідей у полі 'options' (наприклад: [\"12\", \"15\", \"18\", \"24\"]). одне число є правильним і вказане в correct_answer (саме текст цього варіанту).\n"
+            "- для складніших завдань (difficulty 2 або 3: рівняння, розгорнуті текстові задачі чи геометричні обчислення): зроби з ВІДКРИТОЮ ВІДПОВІДДЮ (is_quiz: false, options: null), де учень сам вводить відповідь.\n"
+            "1. умова (question): чітка, лаконічна, без зайвих передмов.\n"
+            "2. відповідь (correct_answer): значення правильної відповіді.\n"
             "3. підказка (hint): формула чи правило БЕЗ підстановки чисел і без розкриття відповіді.\n"
             "4. покроковий розв'язок (detailed_solution): розгорнуте коротке пояснення дій.\n"
-            "5. складність: від 1 до 2 для звичайних вправ підручника, 3 для підвищеної складності.\n"
-            f"6. is_nmt: {is_nmt_spec}.\n\n"
+            f"5. is_nmt: {is_nmt_spec}.\n\n"
             "відповідь надай суворо валідним JSON форматом:\n"
             "{\n"
             '  "title": "коротка назва вправи",\n'
             '  "question": "текст умови завдання",\n'
             '  "hint": "підказка",\n'
-            '  "correct_answer": "числове значення",\n'
+            '  "correct_answer": "правильна відповідь",\n'
             '  "difficulty": 1,\n'
+            '  "is_quiz": true,\n'
+            '  "options": ["варіант 1", "варіант 2", "варіант 3", "варіант 4"],\n'
             f'  "is_nmt": false,\n'
             '  "diagram_svg": null,\n'
             '  "detailed_solution": "покроковий розв\'язок"\n'
@@ -696,6 +728,21 @@ class GeminiAIChecker(BaseAIChecker):
                     diagram_svg = None
 
                 is_nmt = bool(parsed.get("is_nmt", False)) and grade >= 10
+                difficulty = int(parsed.get("difficulty", 1))
+
+                is_quiz = bool(parsed.get("is_quiz", False)) or (difficulty == 1)
+                raw_options = parsed.get("options")
+                options = None
+                corr_ans = str(parsed["correct_answer"]).lower().strip()
+
+                if is_quiz and isinstance(raw_options, list) and len(raw_options) >= 2:
+                    options = [str(opt).strip().lower() for opt in raw_options][:4]
+                    if corr_ans not in options:
+                        options[0] = corr_ans
+                        random.shuffle(options)
+                else:
+                    is_quiz = False
+                    options = None
 
                 return GeneratedTask(
                     grade=grade,
@@ -703,11 +750,13 @@ class GeminiAIChecker(BaseAIChecker):
                     title=str(parsed.get("title", "завдання")).lower(),
                     question=str(parsed["question"]).lower(),
                     hint=str(parsed.get("hint", "скористайся правилом або формулою з підручника.")).lower(),
-                    correct_answer=str(parsed["correct_answer"]).lower().strip(),
-                    difficulty=int(parsed.get("difficulty", 1)),
+                    correct_answer=corr_ans,
+                    difficulty=difficulty,
                     diagram_svg=diagram_svg,
                     is_nmt=is_nmt,
                     detailed_solution=parsed.get("detailed_solution"),
+                    is_quiz=is_quiz,
+                    options=options,
                 )
             except Exception as e:
                 logger.warning("помилка парсингу згенерованої задачі: %s", e)

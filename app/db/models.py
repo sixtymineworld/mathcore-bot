@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -92,6 +93,18 @@ class Task(Base):
     diagram_svg: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_nmt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     detailed_solution: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_quiz: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    options_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    @property
+    def options(self) -> list[str] | None:
+        """Повертає список варіантів відповідей для квізу."""
+        if not self.options_json:
+            return None
+        try:
+            return json.loads(self.options_json)
+        except Exception:
+            return None
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

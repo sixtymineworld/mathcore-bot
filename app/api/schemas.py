@@ -77,6 +77,8 @@ class TaskResponse(BaseModel):
     diagram_svg: str | None = None
     is_nmt: bool = False
     is_solved: bool = False
+    is_quiz: bool = False
+    options: list[str] | None = None
     detailed_solution: str | None = None
 
 

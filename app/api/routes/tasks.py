@@ -1,3 +1,4 @@
+import json
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -124,6 +125,12 @@ async def generate_new_task(
     ai_checker = get_ai_checker()
     generated = await ai_checker.generate_task(grade=topic.grade, topic=topic.title)
 
+    options_json = (
+        json.dumps(generated.options, ensure_ascii=False)
+        if (generated.is_quiz and generated.options)
+        else None
+    )
+
     created_task = await TaskService.create_generated_task(
         topic_id=topic.id,
         title=generated.title,
@@ -134,6 +141,8 @@ async def generate_new_task(
         diagram_svg=generated.diagram_svg,
         is_nmt=generated.is_nmt,
         detailed_solution=generated.detailed_solution,
+        is_quiz=generated.is_quiz,
+        options_json=options_json,
     )
 
     return GenerateTaskResponse(

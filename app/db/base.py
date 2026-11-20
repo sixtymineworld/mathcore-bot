@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 import logging
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -70,6 +71,15 @@ async def init_db() -> None:
         try:
             async with async_engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+                # Безпечне додавання колонок для квізів, якщо таблиця вже створена
+                for col_sql in [
+                    "ALTER TABLE tasks ADD COLUMN is_quiz BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE tasks ADD COLUMN options_json TEXT",
+                ]:
+                    try:
+                        await conn.execute(text(col_sql))
+                    except Exception:
+                        pass
             logger.info("таблиці бази даних готові.")
         except Exception as e:
             if "already exists" not in str(e).lower():

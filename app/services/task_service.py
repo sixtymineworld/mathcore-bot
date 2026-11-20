@@ -51,6 +51,8 @@ class TaskService:
         diagram_svg: str | None = None,
         is_nmt: bool = False,
         detailed_solution: str | None = None,
+        is_quiz: bool = False,
+        options_json: str | None = None,
     ) -> Task:
         """Створює та зберігає згенероване завдання в базі даних."""
         async with get_session() as session:
@@ -64,6 +66,8 @@ class TaskService:
                 diagram_svg=diagram_svg,
                 is_nmt=is_nmt,
                 detailed_solution=detailed_solution,
+                is_quiz=is_quiz,
+                options_json=options_json,
             )
             session.add(task)
             await session.commit()
